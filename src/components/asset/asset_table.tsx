@@ -2,8 +2,52 @@
 
 import { useState } from 'react'
 import { useDeleteAsset, useGetAssets } from '@/queries/asset'
+import { useSyncAssetAmount } from '@/queries/investment'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
+
+const SyncButton = ({
+  assetId,
+  isPending,
+  onSync,
+}: {
+  assetId: number
+  isPending: boolean
+  onSync: (id: number) => void
+}) => (
+  <div className="group relative">
+    <button
+      onClick={() => onSync(assetId)}
+      disabled={isPending}
+      className="flex h-6 w-6 items-center justify-center rounded-full text-gray-300 transition-all duration-200 hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={
+          isPending ? 'animate-spin' : 'transition-transform duration-300 group-hover:rotate-180'
+        }
+      >
+        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+        <path d="M21 3v5h-5" />
+        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+        <path d="M8 16H3v5" />
+      </svg>
+    </button>
+    {/* 툴팁 */}
+    <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
+      투자 종목 현재가 기준으로 금액 업데이트
+      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+    </div>
+  </div>
+)
 import AssetModal from '@/components/asset/asset_modal'
 import {
   Pagination,
@@ -18,9 +62,10 @@ import {
 const PAGE_SIZE = 10
 
 export default function AssetTable() {
-  const [page, setPage] = useState(0) // Spring은 0-based
+  const [page, setPage] = useState(0)
   const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
   const deleteAsset = useDeleteAsset()
+  const syncAsset = useSyncAssetAmount()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Asset | undefined>()
@@ -39,6 +84,9 @@ export default function AssetTable() {
   const handleClose = () => {
     setModalOpen(false)
     setEditTarget(undefined)
+  }
+  const handleSync = (assetId: number) => {
+    syncAsset.mutate(assetId)
   }
 
   const getPageNumbers = () => {
@@ -109,7 +157,16 @@ export default function AssetTable() {
                 <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <div>
                     <p className="text-xs text-gray-400">금액</p>
-                    <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
+                    <div className="flex items-center gap-1">
+                      <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
+                      {asset.type === 'VARIABLE' && (
+                        <SyncButton
+                          assetId={asset.id}
+                          isPending={syncAsset.isPending}
+                          onSync={handleSync}
+                        />
+                      )}
+                    </div>
                   </div>
                   {asset.monthlyPayment && (
                     <div>
@@ -178,7 +235,16 @@ export default function AssetTable() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-800">
-                      {formatAmount(asset.amount)}
+                      <div className="flex items-center justify-end gap-1">
+                        {asset.type === 'VARIABLE' && (
+                          <SyncButton
+                            assetId={asset.id}
+                            isPending={syncAsset.isPending}
+                            onSync={handleSync}
+                          />
+                        )}
+                        {formatAmount(asset.amount)}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right text-gray-500">
                       {asset.monthlyPayment ? formatAmount(asset.monthlyPayment) : '-'}

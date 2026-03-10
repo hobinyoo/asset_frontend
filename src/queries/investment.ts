@@ -1,5 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteInvestment, getInvestments, postInvestment, putInvestment } from '@/api/investment'
+import {
+  deleteInvestment,
+  getInvestments,
+  postInvestment,
+  putInvestment,
+  syncAssetAmount,
+} from '@/api/investment'
 import type { InvestmentCreateRequest, InvestmentUpdateRequest } from '@/types/investment'
 
 export const INVESTMENT_KEYS = {
@@ -34,5 +40,15 @@ export const useDeleteInvestment = () => {
   return useMutation({
     mutationFn: (id: number) => deleteInvestment(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: INVESTMENT_KEYS.all }),
+  })
+}
+export const useSyncAssetAmount = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (assetId: number) => syncAssetAmount(assetId),
+    onSuccess: () => {
+      // asset 목록도 갱신해야 금액이 업데이트된 게 반영됨
+      queryClient.invalidateQueries({ queryKey: ['assets'] })
+    },
   })
 }

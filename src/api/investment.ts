@@ -33,3 +33,7 @@ export const putInvestment = async (
 export const deleteInvestment = async (id: number): Promise<void> => {
   await api.delete(`/api/investments/${id}`)
 }
+
+export const syncAssetAmount = async (assetId: number): Promise<void> => {
+  await api.post(`/api/investments/sync-asset/${assetId}`)
+}
