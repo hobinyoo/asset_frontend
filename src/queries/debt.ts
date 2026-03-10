@@ -4,16 +4,15 @@ import type { DebtCreateRequest, DebtUpdateRequest } from '@/types/debt'
 
 export const DEBT_KEYS = {
   all: ['debts'] as const,
-  list: () => [...DEBT_KEYS.all, 'list'] as const,
+  list: (page: number) => [...DEBT_KEYS.all, 'list', page] as const,
   detail: (id: number) => [...DEBT_KEYS.all, 'detail', id] as const,
 }
 
-export const useGetDebts = () =>
+export const useGetDebts = (page = 0, size = 10) =>
   useQuery({
-    queryKey: DEBT_KEYS.list(),
-    queryFn: getDebts,
+    queryKey: DEBT_KEYS.list(page),
+    queryFn: () => getDebts(page, size),
   })
-
 export const useGetDebt = (id: number) =>
   useQuery({
     queryKey: DEBT_KEYS.detail(id),

@@ -9,8 +9,8 @@ export default async function DebtsPage() {
   const queryClient = getQueryClient()
 
   await queryClient.prefetchQuery({
-    queryKey: DEBT_KEYS.list(),
-    queryFn: getDebts,
+    queryKey: DEBT_KEYS.list(0),
+    queryFn: () => getDebts(0, 10),
   })
 
   return (

@@ -5,15 +5,28 @@ import { useDeleteAsset, useGetAssets } from '@/queries/asset'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
 import AssetModal from '@/components/asset/asset_modal'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+
+const PAGE_SIZE = 10
 
 export default function AssetTable() {
-  const { data, isPending, isError } = useGetAssets()
+  const [page, setPage] = useState(0) // Spring은 0-based
+  const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
   const deleteAsset = useDeleteAsset()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Asset | undefined>()
 
   const assets = data?.content ?? []
+  const totalPages = data?.totalPages ?? 0
 
   const handleEdit = (asset: Asset) => {
     setEditTarget(asset)
@@ -26,6 +39,21 @@ export default function AssetTable() {
   const handleClose = () => {
     setModalOpen(false)
     setEditTarget(undefined)
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    if (totalPages <= 7) {
+      return Array.from({ length: totalPages }, (_, i) => i)
+    }
+    pages.push(0)
+    if (page > 3) pages.push('ellipsis')
+    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
+      pages.push(i)
+    }
+    if (page < totalPages - 4) pages.push('ellipsis')
+    pages.push(totalPages - 1)
+    return pages
   }
 
   if (isPending) {
@@ -186,6 +214,53 @@ export default function AssetTable() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      aria-disabled={page === 0}
+                      className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers().map((p, i) =>
+                    p === 'ellipsis' ? (
+                      <PaginationItem key={`ellipsis-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          isActive={p === page}
+                          onClick={() => setPage(p)}
+                          className="cursor-pointer"
+                        >
+                          {p + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      aria-disabled={page === totalPages - 1}
+                      className={
+                        page === totalPages - 1
+                          ? 'pointer-events-none opacity-40'
+                          : 'cursor-pointer'
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       )}
 

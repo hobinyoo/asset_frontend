@@ -74,6 +74,17 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
   const postDebt = usePostDebt()
   const putDebt = usePutDebt(debt?.id ?? 0)
 
+  const isRegular = form.type === 'REGULAR'
+
+  const handleTypeChange = (type: DebtType) => {
+    setForm({
+      ...form,
+      type,
+      monthlyPayment: type === 'REGULAR' ? form.monthlyPayment : undefined,
+      paymentDay: type === 'REGULAR' ? form.paymentDay : undefined,
+    })
+  }
+
   const handleSubmit = () => {
     if (!form.category || !form.owner || !form.amount) return
     if (isEdit) {
@@ -87,7 +98,7 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-gray-900">
             {isEdit ? '부채 수정' : '부채 등록'}
@@ -120,7 +131,7 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
             <select
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as DebtType })}
+              onChange={(e) => handleTypeChange(e.target.value as DebtType)}
             >
               {DEBT_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -139,35 +150,40 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">월 상환액 (선택)</label>
-            <WonInput
-              value={form.monthlyPayment}
-              onChange={(val) => setForm({ ...form, monthlyPayment: val })}
-              placeholder="월 상환 금액"
-            />
-          </div>
+          {/* 정기일 때만 표시 */}
+          {isRegular && (
+            <>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">월 상환액</label>
+                <WonInput
+                  value={form.monthlyPayment}
+                  onChange={(val) => setForm({ ...form, monthlyPayment: val })}
+                  placeholder="월 상환 금액"
+                />
+              </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">월 상환일 (선택)</label>
-            <div className="relative">
-              <input
-                type="number"
-                min={1}
-                max={31}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                value={form.paymentDay ?? ''}
-                onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
-                }}
-                placeholder="예) 25 (매달 25일)"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                일
-              </span>
-            </div>
-          </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">월 상환일</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    value={form.paymentDay ?? ''}
+                    onChange={(e) => {
+                      const val = Number(e.target.value)
+                      setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
+                    }}
+                    placeholder="예) 25 (매달 25일)"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                    일
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-500">대출 목적 (선택)</label>

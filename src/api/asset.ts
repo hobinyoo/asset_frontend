@@ -2,8 +2,10 @@ import api from '@/api/axios'
 import { Asset, AssetCreateRequest, AssetUpdateRequest } from '@/types/asset'
 import { DataResponse, Paging } from '@/types/response'
 
-export const getAssets = async () => {
-  const { data } = await api.get<DataResponse<Paging<Asset[]>>>('/api/assets')
+export const getAssets = async (page = 0, size = 10) => {
+  const { data } = await api.get<DataResponse<Paging<Asset[]>>>(
+    `/api/assets?page=${page}&size=${size}`,
+  )
   return data.data
 }
 

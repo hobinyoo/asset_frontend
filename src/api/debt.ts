@@ -2,8 +2,10 @@ import api from '@/api/axios'
 import type { Debt, DebtCreateRequest, DebtUpdateRequest } from '@/types/debt'
 import type { DataResponse, Paging } from '@/types/response'
 
-export const getDebts = async () => {
-  const { data } = await api.get<DataResponse<Paging<Debt[]>>>('/api/debts')
+export const getDebts = async (page = 0, size = 10) => {
+  const { data } = await api.get<DataResponse<Paging<Debt[]>>>(
+    `/api/debts?page=${page}&size=${size}`,
+  )
   return data.data
 }
 

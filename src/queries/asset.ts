@@ -4,17 +4,16 @@ import type { AssetCreateRequest, AssetUpdateRequest } from '@/types/asset'
 
 export const ASSET_KEYS = {
   all: ['assets'] as const,
-  list: () => [...ASSET_KEYS.all, 'list'] as const,
+  list: (page?: number) => [...ASSET_KEYS.all, 'list', page] as const,
   linked: () => [...ASSET_KEYS.all, 'linked'] as const,
   detail: (id: number) => [...ASSET_KEYS.all, 'detail', id] as const,
 }
 
-export const useGetAssets = () =>
+export const useGetAssets = (page = 0, size = 10) =>
   useQuery({
-    queryKey: ASSET_KEYS.list(),
-    queryFn: getAssets,
+    queryKey: ASSET_KEYS.list(page),
+    queryFn: () => getAssets(page, size),
   })
-
 export const useGetAsset = (id: number) =>
   useQuery({
     queryKey: ASSET_KEYS.detail(id),

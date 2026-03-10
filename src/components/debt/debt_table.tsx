@@ -5,7 +5,15 @@ import { useDeleteDebt, useGetDebts } from '@/queries/debt'
 import { formatAmount } from '@/utils/format'
 import type { Debt, DebtType } from '@/types/debt'
 import DebtModal from '@/components/debt/debt_modal'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
 
 const DEBT_TYPE_LABEL: Record<DebtType, string> = {
   FIXED: '거치',
@@ -19,14 +27,18 @@ const DEBT_TYPE_COLOR: Record<DebtType, string> = {
   VARIABLE: 'bg-purple-50 text-purple-600',
 }
 
+const PAGE_SIZE = 10
+
 export default function DebtTable() {
-  const { data, isPending, isError } = useGetDebts()
+  const [page, setPage] = useState(0)
+  const { data, isPending, isError } = useGetDebts(page, PAGE_SIZE)
   const deleteDebt = useDeleteDebt()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Debt | undefined>()
 
   const debts = data?.content ?? []
+  const totalPages = data?.totalPages ?? 0
 
   const handleEdit = (debt: Debt) => {
     setEditTarget(debt)
@@ -43,6 +55,19 @@ export default function DebtTable() {
 
   const totalDebt = debts.reduce((sum, d) => sum + d.amount, 0)
   const totalMonthly = debts.reduce((sum, d) => sum + (d.monthlyPayment ?? 0), 0)
+
+  const getPageNumbers = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i)
+    const pages: (number | 'ellipsis')[] = []
+    pages.push(0)
+    if (page > 3) pages.push('ellipsis')
+    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
+      pages.push(i)
+    }
+    if (page < totalPages - 4) pages.push('ellipsis')
+    pages.push(totalPages - 1)
+    return pages
+  }
 
   if (isPending) {
     return (
@@ -222,6 +247,53 @@ export default function DebtTable() {
               </table>
             </div>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      aria-disabled={page === 0}
+                      className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+
+                  {getPageNumbers().map((p, i) =>
+                    p === 'ellipsis' ? (
+                      <PaginationItem key={`ellipsis-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          isActive={p === page}
+                          onClick={() => setPage(p)}
+                          className="cursor-pointer"
+                        >
+                          {p + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      aria-disabled={page === totalPages - 1}
+                      className={
+                        page === totalPages - 1
+                          ? 'pointer-events-none opacity-40'
+                          : 'cursor-pointer'
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       )}
 

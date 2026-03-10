@@ -16,6 +16,7 @@ const EMPTY_FORM: AssetCreateRequest = {
   note: '',
   linkedToInvestment: false,
 }
+
 export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose: () => void }) {
   const isEdit = !!asset
   const [form, setForm] = useState<AssetCreateRequest>(
@@ -35,6 +36,18 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
 
   const postAsset = usePostAsset()
   const putAsset = usePutAsset(asset?.id ?? 0)
+
+  const isRegular = form.type === 'REGULAR'
+
+  const handleTypeChange = (type: AssetType) => {
+    setForm({
+      ...form,
+      type,
+      // REGULAR 아닌 타입으로 바꾸면 월납입 관련 필드 초기화
+      monthlyPayment: type === 'REGULAR' ? form.monthlyPayment : undefined,
+      paymentDay: type === 'REGULAR' ? form.paymentDay : undefined,
+    })
+  }
 
   const handleSubmit = () => {
     if (!form.category || !form.owner || !form.amount) return
@@ -82,7 +95,7 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
             <select
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               value={form.type}
-              onChange={(e) => setForm({ ...form, type: e.target.value as AssetType })}
+              onChange={(e) => handleTypeChange(e.target.value as AssetType)}
             >
               {ASSET_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -103,44 +116,49 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">
-              월 납입금 (원, 선택)
-            </label>
-            <input
-              type="number"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              value={form.monthlyPayment || ''}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  monthlyPayment: e.target.value ? Number(e.target.value) : undefined,
-                })
-              }
-              placeholder="0"
-            />
-          </div>
+          {/* 정기일 때만 표시 */}
+          {isRegular && (
+            <>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">
+                  월 납입금 (원)
+                </label>
+                <input
+                  type="number"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  value={form.monthlyPayment || ''}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      monthlyPayment: e.target.value ? Number(e.target.value) : undefined,
+                    })
+                  }
+                  placeholder="0"
+                />
+              </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">월 납입일 (선택)</label>
-            <div className="relative">
-              <input
-                type="number"
-                min={1}
-                max={31}
-                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                value={form.paymentDay ?? ''}
-                onChange={(e) => {
-                  const val = Number(e.target.value)
-                  setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
-                }}
-                placeholder="예) 25 (매달 25일)"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                일
-              </span>
-            </div>
-          </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-500">월 납입일</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min={1}
+                    max={31}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                    value={form.paymentDay ?? ''}
+                    onChange={(e) => {
+                      const val = Number(e.target.value)
+                      setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
+                    }}
+                    placeholder="예) 25 (매달 25일)"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                    일
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-500">메모 (선택)</label>

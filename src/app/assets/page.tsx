@@ -9,8 +9,8 @@ export default async function AssetsPage() {
   const queryClient = getQueryClient()
 
   await queryClient.prefetchQuery({
-    queryKey: ASSET_KEYS.list(),
-    queryFn: getAssets,
+    queryKey: ASSET_KEYS.list(0),
+    queryFn: () => getAssets(0, 10),
   })
 
   return (
