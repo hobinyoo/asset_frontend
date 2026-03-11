@@ -1,53 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteAsset, useGetAssets } from '@/queries/asset'
+import { useDeleteAsset, useGetAssets, useReorderAsset } from '@/queries/asset'
 import { useSyncAssetAmount } from '@/queries/investment'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
-
-const SyncButton = ({
-  assetId,
-  isPending,
-  onSync,
-}: {
-  assetId: number
-  isPending: boolean
-  onSync: (id: number) => void
-}) => (
-  <div className="group relative">
-    <button
-      onClick={() => onSync(assetId)}
-      disabled={isPending}
-      className="flex h-6 w-6 items-center justify-center rounded-full text-gray-300 transition-all duration-200 hover:bg-blue-50 hover:text-blue-500 disabled:cursor-not-allowed disabled:opacity-40"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="13"
-        height="13"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={
-          isPending ? 'animate-spin' : 'transition-transform duration-300 group-hover:rotate-180'
-        }
-      >
-        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-        <path d="M21 3v5h-5" />
-        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-        <path d="M8 16H3v5" />
-      </svg>
-    </button>
-    {/* 툴팁 */}
-    <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-gray-800 px-2.5 py-1.5 text-xs text-white opacity-0 shadow-lg transition-opacity duration-200 group-hover:opacity-100">
-      투자 종목 현재가 기준으로 금액 업데이트
-      <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
-    </div>
-  </div>
-)
+import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import AssetModal from '@/components/asset/asset_modal'
 import {
   Pagination,
@@ -61,17 +19,25 @@ import {
 
 const PAGE_SIZE = 10
 
+const TYPE_STYLE: Record<string, string> = {
+  FIXED: 'bg-slate-100 text-slate-600', // 거치 - 회색
+  REGULAR: 'bg-emerald-50 text-emerald-600', // 정기 - 초록
+  VARIABLE: 'bg-amber-50 text-amber-600', // 변동 - 노란
+}
+
 export default function AssetTable() {
   const [page, setPage] = useState(0)
   const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
   const deleteAsset = useDeleteAsset()
   const syncAsset = useSyncAssetAmount()
+  const reorderAsset = useReorderAsset()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Asset | undefined>()
 
   const assets = data?.content ?? []
   const totalPages = data?.totalPages ?? 0
+  const totalElements = data?.totalElements ?? 0
 
   const handleEdit = (asset: Asset) => {
     setEditTarget(asset)
@@ -87,6 +53,20 @@ export default function AssetTable() {
   }
   const handleSync = (assetId: number) => {
     syncAsset.mutate(assetId)
+  }
+
+  // 위로 이동: 현재 페이지 내 index 기준으로 sortOrder 계산
+  const handleMoveUp = (asset: Asset, index: number) => {
+    if (index === 0 && page === 0) return // 맨 첫번째면 이동 불가
+    const currentPosition = page * PAGE_SIZE + index + 1
+    reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition - 1 })
+  }
+
+  // 아래로 이동
+  const handleMoveDown = (asset: Asset, index: number) => {
+    if (index === assets.length - 1 && page === totalPages - 1) return // 맨 마지막이면 이동 불가
+    const currentPosition = page * PAGE_SIZE + index + 1
+    reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition + 1 })
   }
 
   const getPageNumbers = () => {
@@ -122,7 +102,7 @@ export default function AssetTable() {
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">자산 목록</h1>
-          <p className="text-sm text-gray-400">총 {data?.totalElements ?? 0}개</p>
+          <p className="text-sm text-gray-400">총 {totalElements}개</p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
@@ -140,7 +120,7 @@ export default function AssetTable() {
         <>
           {/* 모바일 카드 */}
           <div className="space-y-3 md:hidden">
-            {assets.map((asset) => (
+            {assets.map((asset, index) => (
               <div
                 key={asset.id}
                 className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
@@ -150,7 +130,9 @@ export default function AssetTable() {
                     <p className="font-medium text-gray-800">{asset.category}</p>
                     <p className="mt-0.5 text-xs text-gray-400">{asset.owner}</p>
                   </div>
-                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-gray-100 text-gray-600'}`}
+                  >
                     {formatAssetType(asset.type)}
                   </span>
                 </div>
@@ -160,11 +142,16 @@ export default function AssetTable() {
                     <div className="flex items-center gap-1">
                       <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
                       {asset.type === 'VARIABLE' && (
-                        <SyncButton
-                          assetId={asset.id}
-                          isPending={syncAsset.isPending}
-                          onSync={handleSync}
-                        />
+                        <button
+                          onClick={() => handleSync(asset.id)}
+                          disabled={syncAsset.isPending}
+                          className="text-gray-300 hover:text-blue-500 disabled:opacity-40"
+                        >
+                          <RefreshCw
+                            size={12}
+                            className={syncAsset.isPending ? 'animate-spin' : ''}
+                          />
+                        </button>
                       )}
                     </div>
                   </div>
@@ -193,16 +180,30 @@ export default function AssetTable() {
                 </div>
                 <div className="flex gap-1 border-t border-gray-50 pt-3">
                   <button
-                    onClick={() => handleEdit(asset)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                    onClick={() => handleMoveUp(asset, index)}
+                    disabled={index === 0 && page === 0}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-400 hover:bg-gray-100 disabled:opacity-30"
                   >
-                    수정
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleMoveDown(asset, index)}
+                    disabled={index === assets.length - 1 && page === totalPages - 1}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-400 hover:bg-gray-100 disabled:opacity-30"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(asset)}
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                  >
+                    <Pencil size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(asset.id)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
                   >
-                    삭제
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -225,7 +226,7 @@ export default function AssetTable() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {assets.map((asset) => (
+                {assets.map((asset, index) => (
                   <tr key={asset.id} className="transition-colors hover:bg-gray-50/50">
                     <td className="px-4 py-3 font-medium text-gray-800">{asset.category}</td>
                     <td className="px-4 py-3 text-gray-600">{asset.owner}</td>
@@ -237,11 +238,16 @@ export default function AssetTable() {
                     <td className="px-4 py-3 text-right font-medium text-gray-800">
                       <div className="flex items-center justify-end gap-1">
                         {asset.type === 'VARIABLE' && (
-                          <SyncButton
-                            assetId={asset.id}
-                            isPending={syncAsset.isPending}
-                            onSync={handleSync}
-                          />
+                          <button
+                            onClick={() => handleSync(asset.id)}
+                            disabled={syncAsset.isPending}
+                            className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
+                          >
+                            <RefreshCw
+                              size={13}
+                              className={syncAsset.isPending ? 'animate-spin' : ''}
+                            />
+                          </button>
                         )}
                         {formatAmount(asset.amount)}
                       </div>
@@ -260,18 +266,40 @@ export default function AssetTable() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex justify-center gap-1">
+                      <div className="flex items-center justify-center gap-0.5">
+                        {/* 위로 */}
+                        <button
+                          onClick={() => handleMoveUp(asset, index)}
+                          disabled={index === 0 && page === 0}
+                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                          title="위로 이동"
+                        >
+                          <ChevronUp size={15} />
+                        </button>
+                        {/* 아래로 */}
+                        <button
+                          onClick={() => handleMoveDown(asset, index)}
+                          disabled={index === assets.length - 1 && page === totalPages - 1}
+                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+                          title="아래로 이동"
+                        >
+                          <ChevronDown size={15} />
+                        </button>
+                        {/* 수정 */}
                         <button
                           onClick={() => handleEdit(asset)}
-                          className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
+                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
+                          title="수정"
                         >
-                          수정
+                          <Pencil size={14} />
                         </button>
+                        {/* 삭제 */}
                         <button
                           onClick={() => handleDelete(asset.id)}
-                          className="rounded-md px-2 py-1 text-xs text-red-400 hover:bg-red-50"
+                          className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
+                          title="삭제"
                         >
-                          삭제
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -293,7 +321,6 @@ export default function AssetTable() {
                       className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
                     />
                   </PaginationItem>
-
                   {getPageNumbers().map((p, i) =>
                     p === 'ellipsis' ? (
                       <PaginationItem key={`ellipsis-${i}`}>
@@ -311,7 +338,6 @@ export default function AssetTable() {
                       </PaginationItem>
                     ),
                   )}
-
                   <PaginationItem>
                     <PaginationNext
                       onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}

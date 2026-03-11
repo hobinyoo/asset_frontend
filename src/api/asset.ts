@@ -32,3 +32,10 @@ export const getLinkedAssets = async () => {
   const { data } = await api.get<DataResponse<Asset[]>>('/api/assets/linked')
   return data.data
 }
+
+export const reorderAsset = async (id: number, targetPosition: number) => {
+  const { data } = await api.patch<DataResponse<null>>(`/api/assets/${id}/reorder`, {
+    targetPosition,
+  })
+  return data
+}

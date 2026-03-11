@@ -1,5 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { deleteAsset, getAsset, getAssets, getLinkedAssets, postAsset, putAsset } from '@/api/asset'
+import {
+  deleteAsset,
+  getAsset,
+  getAssets,
+  getLinkedAssets,
+  postAsset,
+  putAsset,
+  reorderAsset,
+} from '@/api/asset'
 import type { AssetCreateRequest, AssetUpdateRequest } from '@/types/asset'
 
 export const ASSET_KEYS = {
@@ -54,3 +62,14 @@ export const useGetLinkedAssets = () =>
     queryKey: ASSET_KEYS.linked(),
     queryFn: getLinkedAssets,
   })
+
+export const useReorderAsset = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, targetPosition }: { id: number; targetPosition: number }) =>
+      reorderAsset(id, targetPosition),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+    },
+  })
+}
