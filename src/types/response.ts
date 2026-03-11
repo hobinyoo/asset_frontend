@@ -3,8 +3,8 @@ export type DataResponse<T> = {
   status: number
   success: boolean
   message: string
-  error_code: string | null
-  details: string | null
+  error_code?: string | null
+  details?: string | null
 }
 
 export type Paging<T> = {
@@ -21,6 +21,6 @@ export type ErrorResponse = {
   status: number
   success: boolean
   message: string
-  error_code: string | null
-  details: string | null
+  error_code?: string | null
+  details?: string | null
 }

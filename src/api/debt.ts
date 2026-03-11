@@ -1,5 +1,5 @@
 import api from '@/api/axios'
-import type { Debt, DebtCreateRequest, DebtUpdateRequest } from '@/types/debt'
+import type { Debt, DebtCreateRequest, DebtSummary, DebtUpdateRequest } from '@/types/debt'
 import type { DataResponse, Paging } from '@/types/response'
 
 export const getDebts = async (page = 0, size = 10) => {
@@ -26,4 +26,9 @@ export const putDebt = async (id: number, body: DebtUpdateRequest) => {
 
 export const deleteDebt = async (id: number) => {
   await api.delete(`/api/debts/${id}`)
+}
+
+export const getDebtsSummary = async () => {
+  const { data } = await api.get<DataResponse<DebtSummary>>('/api/debts/summary')
+  return data.data
 }

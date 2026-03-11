@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteAsset, useGetAssets, useReorderAsset } from '@/queries/asset'
+import { useDeleteAsset, useGetAssets, useGetAssetSummary, useReorderAsset } from '@/queries/asset'
 import { useSyncAssetAmount } from '@/queries/investment'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
@@ -28,6 +28,7 @@ const TYPE_STYLE: Record<string, string> = {
 export default function AssetTable() {
   const [page, setPage] = useState(0)
   const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
+  const { data: summary } = useGetAssetSummary()
   const deleteAsset = useDeleteAsset()
   const syncAsset = useSyncAssetAmount()
   const reorderAsset = useReorderAsset()
@@ -38,8 +39,6 @@ export default function AssetTable() {
   const assets = data?.content ?? []
   const totalPages = data?.totalPages ?? 0
   const totalElements = data?.totalElements ?? 0
-  const totalAsset = assets.reduce((sum, a) => sum + a.amount, 0)
-  const totalMonthly = assets.reduce((sum, a) => sum + (a.monthlyPayment ?? 0), 0)
 
   const handleEdit = (asset: Asset) => {
     setEditTarget(asset)
@@ -118,12 +117,14 @@ export default function AssetTable() {
         <div className="mb-4 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
             <p className="text-xs text-blue-400">총 자산</p>
-            <p className="mt-1 text-lg font-bold text-blue-600">{formatAmount(totalAsset)}</p>
+            <p className="mt-1 text-lg font-bold text-blue-600">
+              {formatAmount(summary?.totalAmount ?? 0)}
+            </p>
           </div>
           <div className="rounded-xl border border-green-100 bg-green-50 p-4">
             <p className="text-xs text-green-400">월 납입 합계</p>
             <p className="mt-1 text-lg font-bold text-green-600">
-              {totalMonthly > 0 ? formatAmount(totalMonthly) : '-'}
+              {formatAmount(summary?.totalMonthlyPayment ?? 0)}
             </p>
           </div>
         </div>

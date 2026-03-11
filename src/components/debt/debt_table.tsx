@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteDebt, useGetDebts } from '@/queries/debt'
+import { useDeleteDebt, useGetDebts, useGetDebtsSummary } from '@/queries/debt'
 import { formatAmount } from '@/utils/format'
 import type { Debt, DebtType } from '@/types/debt'
 import DebtModal from '@/components/debt/debt_modal'
@@ -14,6 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
+import { Pencil, Trash2 } from 'lucide-react'
 
 const DEBT_TYPE_LABEL: Record<DebtType, string> = {
   FIXED: '거치',
@@ -32,6 +33,7 @@ const PAGE_SIZE = 10
 export default function DebtTable() {
   const [page, setPage] = useState(0)
   const { data, isPending, isError } = useGetDebts(page, PAGE_SIZE)
+  const { data: summary } = useGetDebtsSummary()
   const deleteDebt = useDeleteDebt()
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -52,9 +54,6 @@ export default function DebtTable() {
     setModalOpen(false)
     setEditTarget(undefined)
   }
-
-  const totalDebt = debts.reduce((sum, d) => sum + d.amount, 0)
-  const totalMonthly = debts.reduce((sum, d) => sum + (d.monthlyPayment ?? 0), 0)
 
   const getPageNumbers = () => {
     if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i)
@@ -102,12 +101,15 @@ export default function DebtTable() {
         <div className="mb-4 grid grid-cols-2 gap-3">
           <div className="rounded-xl border border-red-100 bg-red-50 p-4">
             <p className="text-xs text-red-400">총 부채</p>
-            <p className="mt-1 text-lg font-bold text-red-600">{formatAmount(totalDebt)}</p>
+            <p className="mt-1 text-lg font-bold text-red-600">
+              {' '}
+              {formatAmount(summary?.totalAmount ?? 0)}
+            </p>
           </div>
           <div className="rounded-xl border border-orange-100 bg-orange-50 p-4">
             <p className="text-xs text-orange-400">월 상환 합계</p>
             <p className="mt-1 text-lg font-bold text-orange-600">
-              {totalMonthly > 0 ? formatAmount(totalMonthly) : '-'}
+              {formatAmount(summary?.totalMonthlyPayment ?? 0)}
             </p>
           </div>
         </div>
@@ -170,15 +172,15 @@ export default function DebtTable() {
                 <div className="flex gap-1 border-t border-gray-50 pt-3">
                   <button
                     onClick={() => handleEdit(debt)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
                   >
-                    수정
+                    <Pencil size={13} />
                   </button>
                   <button
                     onClick={() => handleDelete(debt.id)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
+                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
                   >
-                    삭제
+                    <Trash2 size={13} />
                   </button>
                 </div>
               </div>
@@ -198,7 +200,7 @@ export default function DebtTable() {
                     <th className="px-4 py-3 text-right font-medium">월 상환액</th>
                     <th className="px-4 py-3 text-center font-medium">상환일</th>
                     <th className="px-4 py-3 text-left font-medium">목적</th>
-                    <th className="px-4 py-3 text-left font-medium">메모</th>
+
                     <th className="px-4 py-3 text-center font-medium">관리</th>
                   </tr>
                 </thead>
@@ -224,20 +226,22 @@ export default function DebtTable() {
                         {debt.paymentDay ? `${debt.paymentDay}일` : '-'}
                       </td>
                       <td className="px-4 py-3 text-gray-500">{debt.purpose ?? '-'}</td>
-                      <td className="px-4 py-3 text-gray-400">{debt.note ?? '-'}</td>
+
                       <td className="px-4 py-3">
-                        <div className="flex justify-center gap-1">
+                        <div className="flex items-center justify-center gap-0.5">
                           <button
                             onClick={() => handleEdit(debt)}
-                            className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
+                            className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
+                            title="수정"
                           >
-                            수정
+                            <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => handleDelete(debt.id)}
-                            className="rounded-md px-2 py-1 text-xs text-red-400 hover:bg-red-50"
+                            className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
+                            title="삭제"
                           >
-                            삭제
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>

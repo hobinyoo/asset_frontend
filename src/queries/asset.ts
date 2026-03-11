@@ -3,6 +3,7 @@ import {
   deleteAsset,
   getAsset,
   getAssets,
+  getAssetSummary,
   getLinkedAssets,
   postAsset,
   putAsset,
@@ -15,6 +16,7 @@ export const ASSET_KEYS = {
   list: (page?: number) => [...ASSET_KEYS.all, 'list', page] as const,
   linked: () => [...ASSET_KEYS.all, 'linked'] as const,
   detail: (id: number) => [...ASSET_KEYS.all, 'detail', id] as const,
+  summary: () => [...ASSET_KEYS.all, 'summary'] as const,
 }
 
 export const useGetAssets = (page = 0, size = 10) =>
@@ -22,6 +24,7 @@ export const useGetAssets = (page = 0, size = 10) =>
     queryKey: ASSET_KEYS.list(page),
     queryFn: () => getAssets(page, size),
   })
+
 export const useGetAsset = (id: number) =>
   useQuery({
     queryKey: ASSET_KEYS.detail(id),
@@ -57,6 +60,7 @@ export const useDeleteAsset = () => {
     },
   })
 }
+
 export const useGetLinkedAssets = () =>
   useQuery({
     queryKey: ASSET_KEYS.linked(),
@@ -73,3 +77,9 @@ export const useReorderAsset = () => {
     },
   })
 }
+
+export const useGetAssetSummary = () =>
+  useQuery({
+    queryKey: ASSET_KEYS.summary(),
+    queryFn: getAssetSummary,
+  })

@@ -26,3 +26,8 @@ export interface DebtCreateRequest {
 }
 
 export type DebtUpdateRequest = DebtCreateRequest
+
+export interface DebtSummary {
+  totalAmount: number
+  totalMonthlyPayment: number
+}

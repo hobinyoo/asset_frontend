@@ -35,3 +35,8 @@ export interface AssetUpdateRequest {
   note?: string
   linkedToInvestment?: boolean
 }
+
+export interface AssetSummary {
+  totalAmount: number
+  totalMonthlyPayment: number
+}
