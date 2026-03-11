@@ -38,6 +38,8 @@ export default function AssetTable() {
   const assets = data?.content ?? []
   const totalPages = data?.totalPages ?? 0
   const totalElements = data?.totalElements ?? 0
+  const totalAsset = assets.reduce((sum, a) => sum + a.amount, 0)
+  const totalMonthly = assets.reduce((sum, a) => sum + (a.monthlyPayment ?? 0), 0)
 
   const handleEdit = (asset: Asset) => {
     setEditTarget(asset)
@@ -111,7 +113,21 @@ export default function AssetTable() {
           + 자산 등록
         </button>
       </div>
-
+      {/* 요약 카드 */}
+      {assets.length > 0 && (
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <p className="text-xs text-blue-400">총 자산</p>
+            <p className="mt-1 text-lg font-bold text-blue-600">{formatAmount(totalAsset)}</p>
+          </div>
+          <div className="rounded-xl border border-green-100 bg-green-50 p-4">
+            <p className="text-xs text-green-400">월 납입 합계</p>
+            <p className="mt-1 text-lg font-bold text-green-600">
+              {totalMonthly > 0 ? formatAmount(totalMonthly) : '-'}
+            </p>
+          </div>
+        </div>
+      )}
       {assets.length === 0 ? (
         <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400">
           등록된 자산이 없습니다
