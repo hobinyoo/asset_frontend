@@ -20,9 +20,9 @@ import {
 const PAGE_SIZE = 10
 
 const TYPE_STYLE: Record<string, string> = {
-  FIXED: 'bg-slate-100 text-slate-600', // 거치 - 회색
-  REGULAR: 'bg-emerald-50 text-emerald-600', // 정기 - 초록
-  VARIABLE: 'bg-amber-50 text-amber-600', // 변동 - 노란
+  FIXED: 'bg-orange-50 text-orange-600',
+  REGULAR: 'bg-blue-50 text-blue-600',
+  VARIABLE: 'bg-purple-50 text-purple-600',
 }
 
 export default function AssetTable() {
@@ -231,7 +231,9 @@ export default function AssetTable() {
                     <td className="px-4 py-3 font-medium text-gray-800">{asset.category}</td>
                     <td className="px-4 py-3 text-gray-600">{asset.owner}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+                      <span
+                        className={`rounded-full ${TYPE_STYLE[asset.type]} px-2 py-0.5 text-xs font-medium`}
+                      >
                         {formatAssetType(asset.type)}
                       </span>
                     </td>

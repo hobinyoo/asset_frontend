@@ -10,13 +10,25 @@ import type { InvestmentCreateRequest, InvestmentUpdateRequest } from '@/types/i
 
 export const INVESTMENT_KEYS = {
   all: ['investments'] as const,
-  list: () => [...INVESTMENT_KEYS.all, 'list'] as const,
+  list: (params?: {
+    owner?: string
+    category?: string
+    assetId?: number
+    page?: number
+    size?: number
+  }) => [...INVESTMENT_KEYS.all, 'list', params] as const,
 }
 
-export const useGetInvestments = () =>
+export const useGetInvestments = (params?: {
+  owner?: string
+  category?: string
+  assetId?: number
+  page?: number
+  size?: number
+}) =>
   useQuery({
-    queryKey: INVESTMENT_KEYS.list(),
-    queryFn: () => getInvestments(),
+    queryKey: INVESTMENT_KEYS.list(params),
+    queryFn: () => getInvestments(params),
   })
 
 export const usePostInvestment = () => {

@@ -7,8 +7,8 @@ import type {
 import type { Paging } from '@/types/response'
 
 export const getInvestments = async (params?: {
-  account?: string
   owner?: string
+  assetId?: number
   category?: string
   page?: number
   size?: number

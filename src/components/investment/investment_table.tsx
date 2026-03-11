@@ -2,9 +2,23 @@
 
 import { useState } from 'react'
 import { useDeleteInvestment, useGetInvestments } from '@/queries/investment'
+import { useGetLinkedAssets } from '@/queries/asset'
 import { formatAmount } from '@/utils/format'
 import type { Investment } from '@/types/investment'
 import InvestmentModal from '@/components/investment/investment_modal'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { Pencil, Trash2 } from 'lucide-react'
+
+const PAGE_SIZE = 10
+const CATEGORY_OPTIONS = ['ETF', '금', '현금', '채권', '국내주식', '해외주식', '기타']
 
 function ProfitBadge({ rate }: { rate: number | null }) {
   if (rate === null) return <span className="text-gray-300">-</span>
@@ -36,13 +50,22 @@ function ProfitAmount({
 }
 
 export default function InvestmentTable() {
-  const { data, isPending, isError } = useGetInvestments()
+  const [page, setPage] = useState(0)
+  const [filters, setFilters] = useState<{
+    owner?: string
+    category?: string
+    assetId?: number
+  }>({})
+
+  const { data, isPending, isError } = useGetInvestments({ ...filters, page, size: PAGE_SIZE })
+  const { data: linkedAssets = [] } = useGetLinkedAssets()
   const deleteInvestment = useDeleteInvestment()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<Investment | undefined>()
 
   const investments = data?.content ?? []
+  const totalPages = data?.totalPages ?? 0
 
   const handleEdit = (investment: Investment) => {
     setEditTarget(investment)
@@ -55,6 +78,27 @@ export default function InvestmentTable() {
   const handleClose = () => {
     setModalOpen(false)
     setEditTarget(undefined)
+  }
+
+  const handleFilterChange = (key: string, value: string) => {
+    setPage(0)
+    setFilters((prev) => ({
+      ...prev,
+      [key]: value || undefined,
+    }))
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i)
+    pages.push(0)
+    if (page > 3) pages.push('ellipsis')
+    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
+      pages.push(i)
+    }
+    if (page < totalPages - 4) pages.push('ellipsis')
+    pages.push(totalPages - 1)
+    return pages
   }
 
   if (isPending) {
@@ -72,6 +116,7 @@ export default function InvestmentTable() {
 
   return (
     <div className="p-6">
+      {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">투자 종목</h1>
@@ -83,6 +128,52 @@ export default function InvestmentTable() {
         >
           + 종목 등록
         </button>
+      </div>
+
+      {/* 필터 */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <select
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          value={filters.assetId ?? ''}
+          onChange={(e) =>
+            setFilters((prev) => ({
+              ...prev,
+              assetId: e.target.value ? Number(e.target.value) : undefined,
+            }))
+          }
+        >
+          <option value="">전체 계좌</option>
+          {linkedAssets.map((asset) => (
+            <option key={asset.id} value={asset.id}>
+              {asset.category} ({asset.owner})
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          value={filters.category ?? ''}
+          onChange={(e) => handleFilterChange('category', e.target.value)}
+        >
+          <option value="">전체 카테고리</option>
+          {CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+
+        {(filters.assetId || filters.category || filters.owner) && (
+          <button
+            onClick={() => {
+              setFilters({})
+              setPage(0)
+            }}
+            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-50"
+          >
+            초기화
+          </button>
+        )}
       </div>
 
       {investments.length === 0 ? (
@@ -156,14 +247,16 @@ export default function InvestmentTable() {
                 <div className="flex gap-1 border-t border-gray-50 pt-3">
                   <button
                     onClick={() => handleEdit(inv)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
+                    className="flex-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100 flex items-center justify-center gap-1"
                   >
+                    <Pencil size={12} />
                     수정
                   </button>
                   <button
                     onClick={() => handleDelete(inv.id)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
+                    className="flex-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50 flex items-center justify-center gap-1"
                   >
+                    <Trash2 size={12} />
                     삭제
                   </button>
                 </div>
@@ -231,15 +324,15 @@ export default function InvestmentTable() {
                         <div className="flex justify-center gap-1">
                           <button
                             onClick={() => handleEdit(inv)}
-                            className="rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100"
+                            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
                           >
-                            수정
+                            <Pencil size={14} />
                           </button>
                           <button
                             onClick={() => handleDelete(inv.id)}
-                            className="rounded-md px-2 py-1 text-xs text-red-400 hover:bg-red-50"
+                            className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-400"
                           >
-                            삭제
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
@@ -249,6 +342,51 @@ export default function InvestmentTable() {
               </table>
             </div>
           </div>
+
+          {/* 페이지네이션 */}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage((p) => Math.max(0, p - 1))}
+                      aria-disabled={page === 0}
+                      className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {getPageNumbers().map((p, i) =>
+                    p === 'ellipsis' ? (
+                      <PaginationItem key={`ellipsis-${i}`}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          isActive={p === page}
+                          onClick={() => setPage(p)}
+                          className="cursor-pointer"
+                        >
+                          {p + 1}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ),
+                  )}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                      aria-disabled={page === totalPages - 1}
+                      className={
+                        page === totalPages - 1
+                          ? 'pointer-events-none opacity-40'
+                          : 'cursor-pointer'
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
         </>
       )}
 
