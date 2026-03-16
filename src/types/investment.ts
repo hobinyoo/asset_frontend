@@ -1,3 +1,5 @@
+export type MarketType = 'DOMESTIC' | 'OVERSEAS'
+
 export interface Investment {
   id: number
   assetId: number | null
@@ -14,6 +16,7 @@ export interface Investment {
   profitRate: number | null
   createdAt: string
   updatedAt: string
+  marketType: MarketType
 }
 
 export interface InvestmentCreateRequest {
@@ -25,6 +28,7 @@ export interface InvestmentCreateRequest {
   purchasePrice?: number
   quantity?: number
   purchaseAmount?: number
+  marketType: MarketType
 }
 
 export type InvestmentUpdateRequest = InvestmentCreateRequest

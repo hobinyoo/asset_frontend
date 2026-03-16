@@ -9,8 +9,8 @@ export default async function InvestmentsPage() {
   const queryClient = getQueryClient()
 
   await queryClient.prefetchQuery({
-    queryKey: INVESTMENT_KEYS.list(),
-    queryFn: () => getInvestments(),
+    queryKey: INVESTMENT_KEYS.list({ page: 0, size: 10 }), // 맞춰주기
+    queryFn: () => getInvestments({ page: 0, size: 10 }),
   })
 
   return (

@@ -260,6 +260,7 @@ export default function AssetTable() {
                           <button
                             onClick={() => handleSync(asset.id)}
                             disabled={syncAsset.isPending}
+                            title="투자 종목 평가금액 합계로 자산 금액 동기화"
                             className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
                           >
                             <RefreshCw

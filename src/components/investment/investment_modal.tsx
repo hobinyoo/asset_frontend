@@ -1,4 +1,9 @@
-import { Investment, InvestmentCreateRequest, InvestmentUpdateRequest } from '@/types/investment'
+import {
+  Investment,
+  InvestmentCreateRequest,
+  InvestmentUpdateRequest,
+  MarketType,
+} from '@/types/investment'
 import { useState, useEffect } from 'react'
 import { usePostInvestment, usePutInvestment } from '@/queries/investment'
 import { useGetLinkedAssets } from '@/queries/asset'
@@ -13,6 +18,7 @@ const EMPTY_FORM: InvestmentCreateRequest = {
   purchasePrice: undefined,
   quantity: undefined,
   purchaseAmount: undefined,
+  marketType: 'DOMESTIC',
 }
 
 const CATEGORY_OPTIONS = ['ETF', '금', '현금', '채권', '국내주식', '해외주식', '기타']
@@ -71,10 +77,10 @@ const InvestmentModal = ({
   const isEdit = !!investment
   const { data: linkedAssets = [] } = useGetLinkedAssets()
 
-  const initMarket = investment?.ticker?.endsWith('.KS') ? 'KR' : 'US'
+  const initMarket: MarketType = isEdit ? investment.marketType : 'DOMESTIC'
   const initTicker = investment?.ticker?.replace('.KS', '') ?? ''
 
-  const [market, setMarket] = useState<'KR' | 'US'>(isEdit ? initMarket : 'KR')
+  const [market, setMarket] = useState<MarketType>(initMarket)
   const [tickerInput, setTickerInput] = useState(isEdit ? initTicker : '')
 
   const [form, setForm] = useState<InvestmentCreateRequest>(
@@ -88,6 +94,7 @@ const InvestmentModal = ({
           purchasePrice: investment.purchasePrice ?? undefined,
           quantity: investment.quantity ?? undefined,
           purchaseAmount: investment.purchaseAmount ?? undefined,
+          marketType: investment.marketType,
         }
       : EMPTY_FORM,
   )
@@ -104,15 +111,15 @@ const InvestmentModal = ({
     setForm({ ...form, assetId: selected?.id })
   }
 
-  const handleMarketChange = (newMarket: 'KR' | 'US') => {
+  const handleMarketChange = (newMarket: MarketType) => {
     setMarket(newMarket)
-    const ticker = tickerInput ? (newMarket === 'KR' ? `${tickerInput}.KS` : tickerInput) : ''
-    setForm({ ...form, ticker })
+    const ticker = tickerInput ? (newMarket === 'DOMESTIC' ? `${tickerInput}.KS` : tickerInput) : ''
+    setForm({ ...form, ticker, marketType: newMarket })
   }
 
   const handleTickerChange = (value: string) => {
     setTickerInput(value)
-    const ticker = value ? (market === 'KR' ? `${value}.KS` : value) : ''
+    const ticker = value ? (market === 'DOMESTIC' ? `${value}.KS` : value) : ''
     setForm({ ...form, ticker })
   }
 
@@ -194,9 +201,9 @@ const InvestmentModal = ({
               <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm">
                 <button
                   type="button"
-                  onClick={() => handleMarketChange('KR')}
+                  onClick={() => handleMarketChange('DOMESTIC')}
                   className={`px-3 py-2 font-medium transition-colors ${
-                    market === 'KR'
+                    market === 'DOMESTIC'
                       ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-500 hover:bg-gray-50'
                   }`}
@@ -205,9 +212,9 @@ const InvestmentModal = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleMarketChange('US')}
+                  onClick={() => handleMarketChange('OVERSEAS')}
                   className={`px-3 py-2 font-medium transition-colors ${
-                    market === 'US'
+                    market === 'OVERSEAS'
                       ? 'bg-blue-500 text-white'
                       : 'bg-white text-gray-500 hover:bg-gray-50'
                   }`}
@@ -220,11 +227,11 @@ const InvestmentModal = ({
                   className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-24 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={tickerInput}
                   onChange={(e) => handleTickerChange(e.target.value)}
-                  placeholder={market === 'KR' ? '예) 411060' : '예) SPY, QQQ'}
+                  placeholder={market === 'DOMESTIC' ? '예) 411060' : '예) SPY, QQQ'}
                 />
                 {tickerInput && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                    → {market === 'KR' ? `${tickerInput}.KS` : tickerInput}
+                    → {market === 'DOMESTIC' ? `${tickerInput}.KS` : tickerInput}
                   </span>
                 )}
               </div>
