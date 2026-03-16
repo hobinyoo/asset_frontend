@@ -67,6 +67,13 @@ const WonInput = ({
   )
 }
 
+type DomesticMarket = 'KS' | 'KQ'
+
+const getTickerSuffix = (market: MarketType, domesticMarket: DomesticMarket): string => {
+  if (market === 'OVERSEAS') return ''
+  return market === 'DOMESTIC' ? `.${domesticMarket}` : ''
+}
+
 const InvestmentModal = ({
   investment,
   onClose,
@@ -78,9 +85,11 @@ const InvestmentModal = ({
   const { data: linkedAssets = [] } = useGetLinkedAssets()
 
   const initMarket: MarketType = isEdit ? investment.marketType : 'DOMESTIC'
-  const initTicker = investment?.ticker?.replace('.KS', '') ?? ''
+  const initDomesticMarket: DomesticMarket = investment?.ticker?.endsWith('.KQ') ? 'KQ' : 'KS'
+  const initTicker = investment?.ticker?.replace('.KS', '').replace('.KQ', '') ?? ''
 
   const [market, setMarket] = useState<MarketType>(initMarket)
+  const [domesticMarket, setDomesticMarket] = useState<DomesticMarket>(initDomesticMarket)
   const [tickerInput, setTickerInput] = useState(isEdit ? initTicker : '')
 
   const [form, setForm] = useState<InvestmentCreateRequest>(
@@ -106,6 +115,11 @@ const InvestmentModal = ({
     form.purchasePrice && form.quantity ? form.purchasePrice * form.quantity : undefined
   const isAmountAuto = !!(form.purchasePrice && form.quantity)
 
+  const buildTicker = (input: string, mkt: MarketType, dmkt: DomesticMarket) => {
+    if (!input) return ''
+    return mkt === 'DOMESTIC' ? `${input}.${dmkt}` : input
+  }
+
   const handleAssetSelect = (assetId: string) => {
     const selected = linkedAssets.find((a) => a.id === Number(assetId))
     setForm({ ...form, assetId: selected?.id })
@@ -113,13 +127,19 @@ const InvestmentModal = ({
 
   const handleMarketChange = (newMarket: MarketType) => {
     setMarket(newMarket)
-    const ticker = tickerInput ? (newMarket === 'DOMESTIC' ? `${tickerInput}.KS` : tickerInput) : ''
+    const ticker = buildTicker(tickerInput, newMarket, domesticMarket)
     setForm({ ...form, ticker, marketType: newMarket })
+  }
+
+  const handleDomesticMarketChange = (newDmkt: DomesticMarket) => {
+    setDomesticMarket(newDmkt)
+    const ticker = buildTicker(tickerInput, market, newDmkt)
+    setForm({ ...form, ticker })
   }
 
   const handleTickerChange = (value: string) => {
     setTickerInput(value)
-    const ticker = value ? (market === 'DOMESTIC' ? `${value}.KS` : value) : ''
+    const ticker = buildTicker(value, market, domesticMarket)
     setForm({ ...form, ticker })
   }
 
@@ -134,6 +154,7 @@ const InvestmentModal = ({
   }
 
   const isPending = postInvestment.isPending || putInvestment.isPending
+  const tickerSuffix = getTickerSuffix(market, domesticMarket)
 
   return (
     <Dialog open onOpenChange={onClose}>
@@ -197,41 +218,75 @@ const InvestmentModal = ({
             <label className="mb-1 block text-xs font-medium text-gray-500">
               티커 <span className="text-gray-400">(현재가 조회용, 없으면 생략)</span>
             </label>
-            <div className="flex gap-2">
-              <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm">
-                <button
-                  type="button"
-                  onClick={() => handleMarketChange('DOMESTIC')}
-                  className={`px-3 py-2 font-medium transition-colors ${
-                    market === 'DOMESTIC'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  국내
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMarketChange('OVERSEAS')}
-                  className={`px-3 py-2 font-medium transition-colors ${
-                    market === 'OVERSEAS'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-white text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  해외
-                </button>
+            <div className="flex flex-col gap-2">
+              {/* 국내/해외 토글 */}
+              <div className="flex items-center gap-2">
+                <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm">
+                  <button
+                    type="button"
+                    onClick={() => handleMarketChange('DOMESTIC')}
+                    className={`px-3 py-2 font-medium transition-colors ${
+                      market === 'DOMESTIC'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    국내
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleMarketChange('OVERSEAS')}
+                    className={`px-3 py-2 font-medium transition-colors ${
+                      market === 'OVERSEAS'
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-white text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    해외
+                  </button>
+                </div>
+
+                {/* 국내일 때만 코스피/코스닥 라디오 */}
+                {market === 'DOMESTIC' && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="domesticMarket"
+                        value="KS"
+                        checked={domesticMarket === 'KS'}
+                        onChange={() => handleDomesticMarketChange('KS')}
+                        className="accent-blue-500"
+                      />
+                      <span className="text-gray-600">코스피</span>
+                    </label>
+                    <label className="flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="domesticMarket"
+                        value="KQ"
+                        checked={domesticMarket === 'KQ'}
+                        onChange={() => handleDomesticMarketChange('KQ')}
+                        className="accent-blue-500"
+                      />
+                      <span className="text-gray-600">코스닥</span>
+                    </label>
+                  </div>
+                )}
               </div>
-              <div className="relative flex-1">
+
+              {/* 티커 입력 */}
+              <div className="relative">
                 <input
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-24 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-32 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={tickerInput}
                   onChange={(e) => handleTickerChange(e.target.value)}
                   placeholder={market === 'DOMESTIC' ? '예) 411060' : '예) SPY, QQQ'}
                 />
                 {tickerInput && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                    → {market === 'DOMESTIC' ? `${tickerInput}.KS` : tickerInput}
+                    → {tickerInput}
+                    {tickerSuffix}
                   </span>
                 )}
               </div>
