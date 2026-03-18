@@ -1,5 +1,12 @@
 import api from '@/api/axios'
-import { Asset, AssetCreateRequest, AssetSummary, AssetUpdateRequest } from '@/types/asset'
+import {
+  Asset,
+  AssetCreateRequest,
+  AssetSummary,
+  AssetUpdateRequest,
+  DashboardChart,
+  DashboardSummary,
+} from '@/types/asset'
 import { DataResponse, Paging } from '@/types/response'
 
 export const getAssets = async (page = 0, size = 10) => {
@@ -40,7 +47,12 @@ export const reorderAsset = async (id: number, targetPosition: number) => {
   return data
 }
 
-export const getAssetSummary = async () => {
-  const { data } = await api.get<DataResponse<AssetSummary>>('/api/assets/summary')
+export const getDashboardSummary = async () => {
+  const { data } = await api.get<DataResponse<DashboardSummary>>('/api/assets/dashboard/summary')
+  return data.data
+}
+
+export const getDashboardChart = async () => {
+  const { data } = await api.get<DataResponse<DashboardChart>>('/api/assets/dashboard/chart')
   return data.data
 }

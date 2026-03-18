@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteAsset, useGetAssets, useGetAssetSummary, useReorderAsset } from '@/queries/asset'
+import { useDeleteAsset, useGetAssets, useReorderAsset } from '@/queries/asset'
 import { useSyncAssetAmount } from '@/queries/investment'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
@@ -20,15 +20,16 @@ import {
 const PAGE_SIZE = 10
 
 const TYPE_STYLE: Record<string, string> = {
-  FIXED: 'bg-orange-50 text-orange-600',
-  REGULAR: 'bg-blue-50 text-blue-600',
-  VARIABLE: 'bg-purple-50 text-purple-600',
+  HOUSING: 'bg-blue-50 text-blue-600',
+  SAVINGS: 'bg-orange-50 text-orange-600',
+  RETIREMENT: 'bg-green-50 text-green-600',
+  INVESTMENT: 'bg-cyan-50 text-cyan-600',
 }
 
 export default function AssetTable() {
   const [page, setPage] = useState(0)
   const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
-  const { data: summary } = useGetAssetSummary()
+
   const deleteAsset = useDeleteAsset()
   const syncAsset = useSyncAssetAmount()
   const reorderAsset = useReorderAsset()
@@ -56,16 +57,14 @@ export default function AssetTable() {
     syncAsset.mutate(assetId)
   }
 
-  // 위로 이동: 현재 페이지 내 index 기준으로 sortOrder 계산
   const handleMoveUp = (asset: Asset, index: number) => {
-    if (index === 0 && page === 0) return // 맨 첫번째면 이동 불가
+    if (index === 0 && page === 0) return
     const currentPosition = page * PAGE_SIZE + index + 1
     reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition - 1 })
   }
 
-  // 아래로 이동
   const handleMoveDown = (asset: Asset, index: number) => {
-    if (index === assets.length - 1 && page === totalPages - 1) return // 맨 마지막이면 이동 불가
+    if (index === assets.length - 1 && page === totalPages - 1) return
     const currentPosition = page * PAGE_SIZE + index + 1
     reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition + 1 })
   }
@@ -99,7 +98,7 @@ export default function AssetTable() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-2">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">자산 목록</h1>
@@ -112,23 +111,7 @@ export default function AssetTable() {
           + 자산 등록
         </button>
       </div>
-      {/* 요약 카드 */}
-      {assets.length > 0 && (
-        <div className="mb-4 grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p className="text-xs text-blue-400">총 자산</p>
-            <p className="mt-1 text-lg font-bold text-blue-600">
-              {formatAmount(summary?.totalAmount ?? 0)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-green-100 bg-green-50 p-4">
-            <p className="text-xs text-green-400">월 납입 합계</p>
-            <p className="mt-1 text-lg font-bold text-green-600">
-              {formatAmount(summary?.totalMonthlyPayment ?? 0)}
-            </p>
-          </div>
-        </div>
-      )}
+
       {assets.length === 0 ? (
         <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400">
           등록된 자산이 없습니다
@@ -158,7 +141,7 @@ export default function AssetTable() {
                     <p className="text-xs text-gray-400">금액</p>
                     <div className="flex items-center gap-1">
                       <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
-                      {asset.type === 'VARIABLE' && (
+                      {(asset.type === 'INVESTMENT' || asset.type === 'RETIREMENT') && (
                         <button
                           onClick={() => handleSync(asset.id)}
                           disabled={syncAsset.isPending}
@@ -249,14 +232,14 @@ export default function AssetTable() {
                     <td className="px-4 py-3 text-gray-600">{asset.owner}</td>
                     <td className="px-4 py-3">
                       <span
-                        className={`rounded-full ${TYPE_STYLE[asset.type]} px-2 py-0.5 text-xs font-medium`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-gray-100 text-gray-600'}`}
                       >
                         {formatAssetType(asset.type)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-800">
                       <div className="flex items-center justify-end gap-1">
-                        {asset.type === 'VARIABLE' && (
+                        {(asset.type === 'INVESTMENT' || asset.type === 'RETIREMENT') && (
                           <button
                             onClick={() => handleSync(asset.id)}
                             disabled={syncAsset.isPending}
@@ -287,7 +270,6 @@ export default function AssetTable() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-center gap-0.5">
-                        {/* 위로 */}
                         <button
                           onClick={() => handleMoveUp(asset, index)}
                           disabled={index === 0 && page === 0}
@@ -296,7 +278,6 @@ export default function AssetTable() {
                         >
                           <ChevronUp size={15} />
                         </button>
-                        {/* 아래로 */}
                         <button
                           onClick={() => handleMoveDown(asset, index)}
                           disabled={index === assets.length - 1 && page === totalPages - 1}
@@ -305,7 +286,6 @@ export default function AssetTable() {
                         >
                           <ChevronDown size={15} />
                         </button>
-                        {/* 수정 */}
                         <button
                           onClick={() => handleEdit(asset)}
                           className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
@@ -313,7 +293,6 @@ export default function AssetTable() {
                         >
                           <Pencil size={14} />
                         </button>
-                        {/* 삭제 */}
                         <button
                           onClick={() => handleDelete(asset.id)}
                           className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
@@ -329,7 +308,6 @@ export default function AssetTable() {
             </table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="mt-4">
               <Pagination>

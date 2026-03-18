@@ -16,6 +16,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 import { Pencil, Trash2 } from 'lucide-react'
+import { OWNER_OPTIONS } from '@/constants/options'
 
 const PAGE_SIZE = 10
 const CATEGORY_OPTIONS = ['ETF', '금', '현금', '채권', '국내주식', '해외주식', '기타']
@@ -80,7 +81,7 @@ export default function InvestmentTable() {
     setEditTarget(undefined)
   }
 
-  const handleFilterChange = (key: string, value: string) => {
+  const handleFilterChange = (key: string, value: string | number) => {
     setPage(0)
     setFilters((prev) => ({
       ...prev,
@@ -135,12 +136,7 @@ export default function InvestmentTable() {
         <select
           className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
           value={filters.assetId ?? ''}
-          onChange={(e) =>
-            setFilters((prev) => ({
-              ...prev,
-              assetId: e.target.value ? Number(e.target.value) : undefined,
-            }))
-          }
+          onChange={(e) => handleFilterChange('assetId', Number(e.target.value))}
         >
           <option value="">전체 계좌</option>
           {linkedAssets.map((asset) => (
@@ -157,6 +153,19 @@ export default function InvestmentTable() {
         >
           <option value="">전체 카테고리</option>
           {CATEGORY_OPTIONS.map((opt) => (
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
+          ))}
+        </select>
+
+        <select
+          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          value={filters.owner ?? ''}
+          onChange={(e) => handleFilterChange('owner', e.target.value)}
+        >
+          <option value="">전체 소유자</option>
+          {OWNER_OPTIONS.map((opt) => (
             <option key={opt} value={opt}>
               {opt}
             </option>

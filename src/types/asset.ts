@@ -1,4 +1,4 @@
-export type AssetType = 'FIXED' | 'REGULAR' | 'VARIABLE'
+export type AssetType = 'HOUSING' | 'SAVINGS' | 'RETIREMENT' | 'INVESTMENT'
 
 export interface Asset {
   id: number
@@ -36,7 +36,21 @@ export interface AssetUpdateRequest {
   linkedToInvestment?: boolean
 }
 
-export interface AssetSummary {
+export interface DashboardSummary {
   totalAmount: number
   totalMonthlyPayment: number
+  retirementAmount: number
+  investmentAmount: number
+}
+
+export interface DashboardChartItem {
+  type: AssetType
+  label: string
+  amount: number
+  percentage: number
+}
+
+export interface DashboardChart {
+  items: DashboardChartItem[]
+  totalAmount: number
 }

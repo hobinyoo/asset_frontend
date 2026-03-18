@@ -3,7 +3,8 @@ import {
   deleteAsset,
   getAsset,
   getAssets,
-  getAssetSummary,
+  getDashboardChart,
+  getDashboardSummary,
   getLinkedAssets,
   postAsset,
   putAsset,
@@ -17,6 +18,8 @@ export const ASSET_KEYS = {
   linked: () => [...ASSET_KEYS.all, 'linked'] as const,
   detail: (id: number) => [...ASSET_KEYS.all, 'detail', id] as const,
   summary: () => [...ASSET_KEYS.all, 'summary'] as const,
+  dashboardSummary: () => [...ASSET_KEYS.all, 'dashboardSummary'] as const,
+  dashboardChart: () => [...ASSET_KEYS.all, 'dashboardChart'] as const,
 }
 
 export const useGetAssets = (page = 0, size = 10) =>
@@ -78,8 +81,14 @@ export const useReorderAsset = () => {
   })
 }
 
-export const useGetAssetSummary = () =>
+export const useGetDashboardSummary = () =>
   useQuery({
-    queryKey: ASSET_KEYS.summary(),
-    queryFn: getAssetSummary,
+    queryKey: ASSET_KEYS.dashboardSummary(),
+    queryFn: getDashboardSummary,
+  })
+
+export const useGetDashboardChart = () =>
+  useQuery({
+    queryKey: ASSET_KEYS.dashboardChart(),
+    queryFn: getDashboardChart,
   })

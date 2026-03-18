@@ -2,15 +2,22 @@
 
 import { useState } from 'react'
 import { usePostAsset, usePutAsset } from '@/queries/asset'
-import { ASSET_TYPE_OPTIONS } from '@/utils/format'
 import type { Asset, AssetCreateRequest, AssetUpdateRequest, AssetType } from '@/types/asset'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import OwnerSelect from '@/components/common/owner_select'
+
+const ASSET_TYPE_OPTIONS: { value: AssetType; label: string }[] = [
+  { value: 'HOUSING', label: '주택자금' },
+  { value: 'SAVINGS', label: '청약·공제' },
+  { value: 'RETIREMENT', label: '노후 자산 (IRP·연금·DC)' },
+  { value: 'INVESTMENT', label: '투자 (주식·ISA·토스)' },
+]
 
 const EMPTY_FORM: AssetCreateRequest = {
   category: '',
   owner: '',
   amount: 0,
-  type: 'FIXED',
+  type: 'HOUSING',
   monthlyPayment: undefined,
   paymentDay: undefined,
   note: '',
@@ -34,19 +41,18 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
       : EMPTY_FORM,
   )
 
+  const [hasMonthlyPayment, setHasMonthlyPayment] = useState(
+    isEdit ? !!asset.monthlyPayment : false,
+  )
+
   const postAsset = usePostAsset()
   const putAsset = usePutAsset(asset?.id ?? 0)
 
-  const isRegular = form.type === 'REGULAR'
-
-  const handleTypeChange = (type: AssetType) => {
-    setForm({
-      ...form,
-      type,
-      // REGULAR 아닌 타입으로 바꾸면 월납입 관련 필드 초기화
-      monthlyPayment: type === 'REGULAR' ? form.monthlyPayment : undefined,
-      paymentDay: type === 'REGULAR' ? form.paymentDay : undefined,
-    })
+  const handleMonthlyPaymentToggle = (has: boolean) => {
+    setHasMonthlyPayment(has)
+    if (!has) {
+      setForm({ ...form, monthlyPayment: undefined, paymentDay: undefined })
+    }
   }
 
   const handleSubmit = () => {
@@ -80,22 +86,17 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
             />
           </div>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">소유자</label>
-            <input
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-              value={form.owner}
-              onChange={(e) => setForm({ ...form, owner: e.target.value })}
-              placeholder="예) 본인"
-            />
-          </div>
+          <OwnerSelect
+            value={form.owner}
+            onChange={(value) => setForm({ ...form, owner: value })}
+          />
 
           <div>
             <label className="mb-1 block text-xs font-medium text-gray-500">자산 유형</label>
             <select
               className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               value={form.type}
-              onChange={(e) => handleTypeChange(e.target.value as AssetType)}
+              onChange={(e) => setForm({ ...form, type: e.target.value as AssetType })}
             >
               {ASSET_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -116,8 +117,34 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
             />
           </div>
 
-          {/* 정기일 때만 표시 */}
-          {isRegular && (
+          {/* 월납입금 라디오 */}
+          <div>
+            <label className="mb-2 block text-xs font-medium text-gray-500">월 납입금</label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="radio"
+                  name="monthlyPayment"
+                  checked={!hasMonthlyPayment}
+                  onChange={() => handleMonthlyPaymentToggle(false)}
+                  className="h-4 w-4"
+                />
+                없음
+              </label>
+              <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+                <input
+                  type="radio"
+                  name="monthlyPayment"
+                  checked={hasMonthlyPayment}
+                  onChange={() => handleMonthlyPaymentToggle(true)}
+                  className="h-4 w-4"
+                />
+                있음
+              </label>
+            </div>
+          </div>
+
+          {hasMonthlyPayment && (
             <>
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-500">

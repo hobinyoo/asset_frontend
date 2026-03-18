@@ -1,21 +1,26 @@
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query'
-
-import AssetTable from '@/components/asset/asset_table'
 import { getQueryClient } from '@/lib/query_client'
 import { ASSET_KEYS } from '@/queries/asset'
-import { getAssets } from '@/api/asset'
+import { getDashboardSummary, getDashboardChart } from '@/api/asset'
+import DashboardView from '@/components/asset/dashboard_view'
 
-export default async function AssetsPage() {
+export default async function DashboardRootPage() {
   const queryClient = getQueryClient()
 
-  await queryClient.prefetchQuery({
-    queryKey: ASSET_KEYS.list(0),
-    queryFn: () => getAssets(0, 10),
-  })
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: ASSET_KEYS.dashboardSummary(),
+      queryFn: getDashboardSummary,
+    }),
+    queryClient.prefetchQuery({
+      queryKey: ASSET_KEYS.dashboardChart(),
+      queryFn: getDashboardChart,
+    }),
+  ])
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <AssetTable />
+      <DashboardView />
     </HydrationBoundary>
   )
 }

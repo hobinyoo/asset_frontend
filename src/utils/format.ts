@@ -7,15 +7,17 @@ export const formatDate = (dateStr: string): string => new Date(dateStr).toLocal
 
 export const formatAssetType = (type: AssetType): string => {
   const map: Record<AssetType, string> = {
-    FIXED: '거치',
-    REGULAR: '정기',
-    VARIABLE: '변동',
+    HOUSING: '주택자금',
+    SAVINGS: '청약·공제',
+    RETIREMENT: '노후 자산',
+    INVESTMENT: '투자',
   }
   return map[type]
 }
 
 export const ASSET_TYPE_OPTIONS: { label: string; value: AssetType }[] = [
-  { label: '거치', value: 'FIXED' },
-  { label: '정기', value: 'REGULAR' },
-  { label: '변동', value: 'VARIABLE' },
+  { label: '주택자금', value: 'HOUSING' },
+  { label: '청약·공제', value: 'SAVINGS' },
+  { label: '노후 자산', value: 'RETIREMENT' },
+  { label: '투자', value: 'INVESTMENT' },
 ]
