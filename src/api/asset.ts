@@ -2,7 +2,6 @@ import api from '@/api/axios'
 import {
   Asset,
   AssetCreateRequest,
-  AssetSummary,
   AssetUpdateRequest,
   DashboardChart,
   DashboardSummary,
