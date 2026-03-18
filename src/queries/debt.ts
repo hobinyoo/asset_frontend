@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { deleteDebt, getDebt, getDebts, getDebtsSummary, postDebt, putDebt } from '@/api/debt'
 import type { DebtCreateRequest, DebtUpdateRequest } from '@/types/debt'
-import { getAssetSummary } from '@/api/asset'
 import { ASSET_KEYS } from '@/queries/asset'
 
 export const DEBT_KEYS = {
