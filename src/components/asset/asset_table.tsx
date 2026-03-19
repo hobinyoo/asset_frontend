@@ -7,15 +7,7 @@ import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
 import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import AssetModal from '@/components/asset/asset_modal'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
+import TablePagination from '@/components/common/table_pagination'
 
 const PAGE_SIZE = 10
 
@@ -67,21 +59,6 @@ export default function AssetTable() {
     if (index === assets.length - 1 && page === totalPages - 1) return
     const currentPosition = page * PAGE_SIZE + index + 1
     reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition + 1 })
-  }
-
-  const getPageNumbers = () => {
-    const pages: (number | 'ellipsis')[] = []
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, i) => i)
-    }
-    pages.push(0)
-    if (page > 3) pages.push('ellipsis')
-    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
-      pages.push(i)
-    }
-    if (page < totalPages - 4) pages.push('ellipsis')
-    pages.push(totalPages - 1)
-    return pages
   }
 
   if (isPending) {
@@ -141,7 +118,7 @@ export default function AssetTable() {
                     <p className="text-xs text-gray-400">금액</p>
                     <div className="flex items-center gap-1">
                       <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
-                      {(asset.type === 'INVESTMENT' || asset.type === 'RETIREMENT') && (
+                      {asset.linkedToInvestment && (
                         <button
                           onClick={() => handleSync(asset.id)}
                           disabled={syncAsset.isPending}
@@ -239,7 +216,7 @@ export default function AssetTable() {
                     </td>
                     <td className="px-4 py-3 text-right font-medium text-gray-800">
                       <div className="flex items-center justify-end gap-1">
-                        {(asset.type === 'INVESTMENT' || asset.type === 'RETIREMENT') && (
+                        {asset.linkedToInvestment && (
                           <button
                             onClick={() => handleSync(asset.id)}
                             disabled={syncAsset.isPending}
@@ -308,49 +285,7 @@ export default function AssetTable() {
             </table>
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      aria-disabled={page === 0}
-                      className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-                  {getPageNumbers().map((p, i) =>
-                    p === 'ellipsis' ? (
-                      <PaginationItem key={`ellipsis-${i}`}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    ) : (
-                      <PaginationItem key={p}>
-                        <PaginationLink
-                          isActive={p === page}
-                          onClick={() => setPage(p)}
-                          className="cursor-pointer"
-                        >
-                          {p + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ),
-                  )}
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                      aria-disabled={page === totalPages - 1}
-                      className={
-                        page === totalPages - 1
-                          ? 'pointer-events-none opacity-40'
-                          : 'cursor-pointer'
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
 

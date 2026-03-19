@@ -3,6 +3,9 @@ import type { Debt, DebtCreateRequest, DebtType, DebtUpdateRequest } from '@/typ
 import { usePostDebt, usePutDebt } from '@/queries/debt'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import OwnerSelect from '@/components/common/owner_select'
+import WonInput from '@/components/common/won_input'
+import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/common/form_field'
+import ModalActions from '@/components/common/modal_actions'
 
 const EMPTY_FORM: DebtCreateRequest = {
   category: '',
@@ -20,40 +23,6 @@ const DEBT_TYPE_OPTIONS: { value: DebtType; label: string }[] = [
   { value: 'REGULAR', label: '정기' },
   { value: 'VARIABLE', label: '변동' },
 ]
-
-const formatWon = (value: number | undefined) => {
-  if (!value) return ''
-  return value.toLocaleString('ko-KR')
-}
-
-const WonInput = ({
-  value,
-  onChange,
-  placeholder,
-}: {
-  value: number | undefined
-  onChange: (val: number | undefined) => void
-  placeholder?: string
-}) => {
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/,/g, '')
-    if (raw === '' || /^\d+$/.test(raw)) {
-      onChange(raw ? Number(raw) : undefined)
-    }
-  }
-
-  return (
-    <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">₩</span>
-      <input
-        className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-        value={formatWon(value)}
-        onChange={handleChange}
-        placeholder={placeholder ?? '0'}
-      />
-    </div>
-  )
-}
 
 const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
   const isEdit = !!debt
@@ -107,25 +76,21 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
         </DialogHeader>
 
         <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">카테고리</label>
-            <input
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="카테고리">
+            <FormInput
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               placeholder="예) 신용대출, 주택청약대출"
             />
-          </div>
+          </FormField>
 
           <OwnerSelect
             value={form.owner}
             onChange={(value) => setForm({ ...form, owner: value })}
           />
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">부채 유형</label>
-            <select
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="부채 유형">
+            <FormSelect
               value={form.type}
               onChange={(e) => handleTypeChange(e.target.value as DebtType)}
             >
@@ -134,90 +99,75 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
                   {opt.label}
                 </option>
               ))}
-            </select>
-          </div>
+            </FormSelect>
+          </FormField>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">잔액</label>
+          <FormField label="잔액">
             <WonInput
               value={form.amount || undefined}
               onChange={(val) => setForm({ ...form, amount: val ?? 0 })}
               placeholder="남은 대출 잔액"
             />
-          </div>
+          </FormField>
 
-          {/* 정기일 때만 표시 */}
           {isRegular && (
             <>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">월 상환액</label>
+              <FormField label="월 상환액">
                 <WonInput
                   value={form.monthlyPayment}
                   onChange={(val) => setForm({ ...form, monthlyPayment: val })}
                   placeholder="월 상환 금액"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">월 상환일</label>
+              <FormField label="월 상환일">
                 <div className="relative">
-                  <input
+                  <FormInput
                     type="number"
                     min={1}
                     max={31}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     value={form.paymentDay ?? ''}
                     onChange={(e) => {
                       const val = Number(e.target.value)
                       setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
                     }}
                     placeholder="예) 25 (매달 25일)"
+                    className="pr-8"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
                     일
                   </span>
                 </div>
-              </div>
+              </FormField>
             </>
           )}
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">대출 목적 (선택)</label>
-            <input
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="대출 목적 (선택)">
+            <FormInput
               value={form.purpose ?? ''}
               onChange={(e) => setForm({ ...form, purpose: e.target.value })}
               placeholder="예) 집보증금"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">메모 (선택)</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="메모 (선택)">
+            <FormTextarea
               value={form.note ?? ''}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               placeholder="메모를 입력하세요"
               rows={2}
             />
-          </div>
+          </FormField>
         </div>
 
-        <div className="mt-6 flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="flex-1 rounded-lg bg-red-500 py-2 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50"
-          >
-            {isPending ? '저장 중...' : isEdit ? '수정' : '등록'}
-          </button>
-        </div>
+        <ModalActions
+          onClose={onClose}
+          onSubmit={handleSubmit}
+          isPending={isPending}
+          isEdit={isEdit}
+          color="red"
+          className="mt-6"
+        />
       </DialogContent>
     </Dialog>
   )

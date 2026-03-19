@@ -5,6 +5,8 @@ import { usePostAsset, usePutAsset } from '@/queries/asset'
 import type { Asset, AssetCreateRequest, AssetUpdateRequest, AssetType } from '@/types/asset'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import OwnerSelect from '@/components/common/owner_select'
+import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/common/form_field'
+import ModalActions from '@/components/common/modal_actions'
 
 const ASSET_TYPE_OPTIONS: { value: AssetType; label: string }[] = [
   { value: 'HOUSING', label: '주택자금' },
@@ -76,25 +78,21 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
         </DialogHeader>
 
         <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">카테고리</label>
-            <input
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="카테고리">
+            <FormInput
               value={form.category}
               onChange={(e) => setForm({ ...form, category: e.target.value })}
               placeholder="예) 국민은행 적금"
             />
-          </div>
+          </FormField>
 
           <OwnerSelect
             value={form.owner}
             onChange={(value) => setForm({ ...form, owner: value })}
           />
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">자산 유형</label>
-            <select
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="자산 유형">
+            <FormSelect
               value={form.type}
               onChange={(e) => setForm({ ...form, type: e.target.value as AssetType })}
             >
@@ -103,25 +101,23 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
                   {opt.label}
                 </option>
               ))}
-            </select>
-          </div>
+            </FormSelect>
+          </FormField>
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">금액 (원)</label>
-            <input
+          <FormField label="금액 (원)">
+            <FormInput
               type="number"
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
               value={form.amount || ''}
               onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
               placeholder="0"
             />
-          </div>
+          </FormField>
 
           {/* 월납입금 라디오 */}
           <div>
-            <label className="mb-2 block text-xs font-medium text-gray-500">월 납입금</label>
+            <p className="mb-2 text-xs font-medium text-gray-500">월 납입금</p>
             <div className="flex gap-4">
-              <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+              <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
                 <input
                   type="radio"
                   name="monthlyPayment"
@@ -131,7 +127,7 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
                 />
                 없음
               </label>
-              <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+              <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
                 <input
                   type="radio"
                   name="monthlyPayment"
@@ -146,13 +142,9 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
 
           {hasMonthlyPayment && (
             <>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">
-                  월 납입금 (원)
-                </label>
-                <input
+              <FormField label="월 납입금 (원)">
+                <FormInput
                   type="number"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                   value={form.monthlyPayment || ''}
                   onChange={(e) =>
                     setForm({
@@ -162,41 +154,38 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
                   }
                   placeholder="0"
                 />
-              </div>
+              </FormField>
 
-              <div>
-                <label className="mb-1 block text-xs font-medium text-gray-500">월 납입일</label>
+              <FormField label="월 납입일">
                 <div className="relative">
-                  <input
+                  <FormInput
                     type="number"
                     min={1}
                     max={31}
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                     value={form.paymentDay ?? ''}
                     onChange={(e) => {
                       const val = Number(e.target.value)
                       setForm({ ...form, paymentDay: val >= 1 && val <= 31 ? val : undefined })
                     }}
                     placeholder="예) 25 (매달 25일)"
+                    className="pr-8"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
                     일
                   </span>
                 </div>
-              </div>
+              </FormField>
             </>
           )}
 
-          <div>
-            <label className="mb-1 block text-xs font-medium text-gray-500">메모 (선택)</label>
-            <textarea
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          <FormField label="메모 (선택)">
+            <FormTextarea
               value={form.note ?? ''}
               onChange={(e) => setForm({ ...form, note: e.target.value })}
               placeholder="메모를 입력하세요"
               rows={2}
             />
-          </div>
+          </FormField>
 
           <div className="flex items-center gap-2">
             <input
@@ -212,21 +201,13 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
           </div>
         </div>
 
-        <div className="mt-2 flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={isPending}
-            className="flex-1 rounded-lg bg-blue-500 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
-          >
-            {isPending ? '저장 중...' : isEdit ? '수정' : '등록'}
-          </button>
-        </div>
+        <ModalActions
+          onClose={onClose}
+          onSubmit={handleSubmit}
+          isPending={isPending}
+          isEdit={isEdit}
+          className="mt-2"
+        />
       </DialogContent>
     </Dialog>
   )

@@ -5,15 +5,7 @@ import { useDeleteDebt, useGetDebts, useGetDebtsSummary } from '@/queries/debt'
 import { formatAmount } from '@/utils/format'
 import type { Debt, DebtType } from '@/types/debt'
 import DebtModal from '@/components/debt/debt_modal'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination'
+import TablePagination from '@/components/common/table_pagination'
 import { Pencil, Trash2 } from 'lucide-react'
 
 const DEBT_TYPE_LABEL: Record<DebtType, string> = {
@@ -53,19 +45,6 @@ export default function DebtTable() {
   const handleClose = () => {
     setModalOpen(false)
     setEditTarget(undefined)
-  }
-
-  const getPageNumbers = () => {
-    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i)
-    const pages: (number | 'ellipsis')[] = []
-    pages.push(0)
-    if (page > 3) pages.push('ellipsis')
-    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
-      pages.push(i)
-    }
-    if (page < totalPages - 4) pages.push('ellipsis')
-    pages.push(totalPages - 1)
-    return pages
   }
 
   if (isPending) {
@@ -200,7 +179,6 @@ export default function DebtTable() {
                     <th className="px-4 py-3 text-right font-medium">월 상환액</th>
                     <th className="px-4 py-3 text-center font-medium">상환일</th>
                     <th className="px-4 py-3 text-left font-medium">목적</th>
-
                     <th className="px-4 py-3 text-center font-medium">관리</th>
                   </tr>
                 </thead>
@@ -226,7 +204,6 @@ export default function DebtTable() {
                         {debt.paymentDay ? `${debt.paymentDay}일` : '-'}
                       </td>
                       <td className="px-4 py-3 text-gray-500">{debt.purpose ?? '-'}</td>
-
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-0.5">
                           <button
@@ -252,52 +229,7 @@ export default function DebtTable() {
             </div>
           </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      onClick={() => setPage((p) => Math.max(0, p - 1))}
-                      aria-disabled={page === 0}
-                      className={page === 0 ? 'pointer-events-none opacity-40' : 'cursor-pointer'}
-                    />
-                  </PaginationItem>
-
-                  {getPageNumbers().map((p, i) =>
-                    p === 'ellipsis' ? (
-                      <PaginationItem key={`ellipsis-${i}`}>
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    ) : (
-                      <PaginationItem key={p}>
-                        <PaginationLink
-                          isActive={p === page}
-                          onClick={() => setPage(p)}
-                          className="cursor-pointer"
-                        >
-                          {p + 1}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ),
-                  )}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                      aria-disabled={page === totalPages - 1}
-                      className={
-                        page === totalPages - 1
-                          ? 'pointer-events-none opacity-40'
-                          : 'cursor-pointer'
-                      }
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
 
