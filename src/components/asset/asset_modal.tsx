@@ -2,9 +2,17 @@
 
 import { useState } from 'react'
 import { usePostAsset, usePutAsset } from '@/queries/asset'
+import {
+  useAssetCategories,
+  useAddAssetCategory,
+  useDeleteAssetCategory,
+  useAssetOwners,
+  useAddAssetOwner,
+  useDeleteAssetOwner,
+} from '@/queries/config'
 import type { Asset, AssetCreateRequest, AssetUpdateRequest, AssetType } from '@/types/asset'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import OwnerSelect from '@/components/common/owner_select'
+import ConfigSelectField from '@/components/common/config_select_field'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/common/form_field'
 import ModalActions from '@/components/common/modal_actions'
 
@@ -49,6 +57,12 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
 
   const postAsset = usePostAsset()
   const putAsset = usePutAsset(asset?.id ?? 0)
+  const { data: assetCategories = [] } = useAssetCategories()
+  const { data: assetOwners = [] } = useAssetOwners()
+  const addAssetCategory = useAddAssetCategory()
+  const deleteAssetCategory = useDeleteAssetCategory()
+  const addAssetOwner = useAddAssetOwner()
+  const deleteAssetOwner = useDeleteAssetOwner()
 
   const handleMonthlyPaymentToggle = (has: boolean) => {
     setHasMonthlyPayment(has)
@@ -78,17 +92,26 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
         </DialogHeader>
 
         <div className="space-y-3">
-          <FormField label="카테고리">
-            <FormInput
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              placeholder="예) 국민은행 적금"
-            />
-          </FormField>
+          <ConfigSelectField
+            label="카테고리"
+            value={form.category}
+            onChange={(value) => setForm({ ...form, category: value })}
+            items={assetCategories}
+            onAdd={(value, onSuccess) => addAssetCategory.mutate(value, { onSuccess })}
+            onDelete={(id) => deleteAssetCategory.mutate(id)}
+            isPending={addAssetCategory.isPending}
+            placeholder="카테고리 선택"
+          />
 
-          <OwnerSelect
+          <ConfigSelectField
+            label="소유자"
             value={form.owner}
             onChange={(value) => setForm({ ...form, owner: value })}
+            items={assetOwners}
+            onAdd={(value, onSuccess) => addAssetOwner.mutate(value, { onSuccess })}
+            onDelete={(id) => deleteAssetOwner.mutate(id)}
+            isPending={addAssetOwner.isPending}
+            placeholder="소유자 선택"
           />
 
           <FormField label="자산 유형">

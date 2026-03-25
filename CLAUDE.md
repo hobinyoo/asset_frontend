@@ -51,6 +51,19 @@ React Query 훅 (src/queries/)
 - **`ModalActions`** — 취소/저장 버튼 (`color="blue"|"red"`, `disabled` 지원)
 - **`TablePagination`** — 페이지네이션 (`page`, `totalPages`, `onPageChange` props)
 - **`OwnerSelect`** — 소유자 드롭다운 (유호빈 / 허선주 / 공통)
+- **`ConfigSelectField`** — 서버 목록 기반 셀렉트 + 직접 추가 + 항목 삭제. shadcn `Select` 사용. props: `label`, `value`, `onChange`, `items: ConfigItem[]`, `onAdd(value, onSuccess)`, `onDelete?(id)`, `isPending`, `placeholder`
+  - 삭제 버튼은 `SelectItem` 바깥 wrapper div에 배치 (`[&_svg]:pointer-events-none` 우회, `SelectPrimitive.ItemText` 오염 방지)
+  - `onPointerDown` + `preventDefault/stopPropagation`으로 Radix Select 선택 이벤트 차단
+
+### Config 도메인 (`src/api/config.ts`, `src/queries/config.ts`)
+
+멤버별 커스텀 목록(카테고리, 소유자)을 관리하는 레이어:
+
+- **`CONFIG_KEYS`** — `{ assetCategories(), assetOwners(), investmentCategories() }`
+- 조회: `useAssetCategories()` / `useAssetOwners()` / `useInvestmentCategories()`
+- 추가: `useAddAssetCategory()` / `useAddAssetOwner()` / `useAddInvestmentCategory()` — 성공 시 해당 키 invalidate
+- 삭제: `useDeleteAssetCategory()` / `useDeleteAssetOwner()` / `useDeleteInvestmentCategory()`
+- `ConfigItem` 타입: `{ id: number; value: string }` (`src/types/config.ts`)
 
 ### 파일 네이밍
 
@@ -62,3 +75,36 @@ React Query 훅 (src/queries/)
 | 변수 | 설명 |
 |------|------|
 | `NEXT_PUBLIC_API_URL` | 백엔드 API base URL |
+| `TEST_LOGIN_ID` | Playwright E2E 테스트용 로그인 ID |
+| `TEST_PASSWORD` | Playwright E2E 테스트용 비밀번호 |
+
+## E2E 테스트 (Playwright)
+
+```bash
+npx playwright test          # 전체 실행
+npx playwright test auth     # 특정 파일
+npx playwright test --ui     # UI 모드
+npx playwright show-report   # 결과 리포트
+```
+
+### 구조
+
+```
+tests/
+├── global.setup.ts       ← 로그인 후 .auth/user.json 에 storageState 저장
+├── fixtures/
+│   └── auth.fixture.ts   ← apiCall() 헬퍼 + createTestAsset/clean* fixture
+├── auth.spec.ts
+├── assets.spec.ts
+├── debts.spec.ts
+├── investments.spec.ts
+└── snapshots.spec.ts
+```
+
+### 컨벤션
+- 인증 상태: `storageState: '.auth/user.json'` (쿠키 포함) — 매 테스트마다 로그인 불필요
+- 미인증 테스트: `test.use({ storageState: { cookies: [], origins: [] } })`
+- 테스트 데이터 생성: `apiCall(page, 'POST', ...)` 헬퍼 (쿠키 자동 추가)
+- 테스트 후 정리: `cleanAsset/cleanDebt/cleanInvestment` fixture
+- 테스트 데이터 이름에 `Date.now()` 접미사로 충돌 방지
+- `workers: 1` — 순차 실행으로 백엔드 상태 충돌 방지

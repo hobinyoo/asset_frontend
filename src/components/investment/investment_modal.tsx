@@ -1,14 +1,24 @@
+'use client'
+
+import { useState } from 'react'
 import {
   Investment,
   InvestmentCreateRequest,
   InvestmentUpdateRequest,
   MarketType,
 } from '@/types/investment'
-import { useState } from 'react'
 import { usePostInvestment, usePutInvestment } from '@/queries/investment'
 import { useGetLinkedAssets } from '@/queries/asset'
+import {
+  useInvestmentCategories,
+  useAddInvestmentCategory,
+  useDeleteInvestmentCategory,
+  useAssetOwners,
+  useAddAssetOwner,
+  useDeleteAssetOwner,
+} from '@/queries/config'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import OwnerSelect from '@/components/common/owner_select'
+import ConfigSelectField from '@/components/common/config_select_field'
 import WonInput from '@/components/common/won_input'
 import { FormField, FormInput, FormSelect } from '@/components/common/form_field'
 import ModalActions from '@/components/common/modal_actions'
@@ -24,8 +34,6 @@ const EMPTY_FORM: InvestmentCreateRequest = {
   purchaseAmount: undefined,
   marketType: 'DOMESTIC',
 }
-
-const CATEGORY_OPTIONS = ['ETF', '금', '현금', '채권', '국내주식', '해외주식', '기타']
 
 type DomesticMarket = 'KS' | 'KQ'
 
@@ -48,6 +56,12 @@ const InvestmentModal = ({
 }) => {
   const isEdit = !!investment
   const { data: linkedAssets = [] } = useGetLinkedAssets()
+  const { data: investmentCategories = [] } = useInvestmentCategories()
+  const addInvestmentCategory = useAddInvestmentCategory()
+  const deleteInvestmentCategory = useDeleteInvestmentCategory()
+  const { data: assetOwners = [] } = useAssetOwners()
+  const addAssetOwner = useAddAssetOwner()
+  const deleteAssetOwner = useDeleteAssetOwner()
 
   const initMarket: MarketType = isEdit ? investment.marketType : 'DOMESTIC'
   const initDomesticMarket: DomesticMarket = investment?.ticker?.endsWith('.KQ') ? 'KQ' : 'KS'
@@ -146,19 +160,16 @@ const InvestmentModal = ({
             )}
           </FormField>
 
-          <FormField label="카테고리">
-            <FormSelect
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-            >
-              <option value="">선택</option>
-              {CATEGORY_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </FormSelect>
-          </FormField>
+          <ConfigSelectField
+            label="카테고리"
+            value={form.category}
+            onChange={(value) => setForm({ ...form, category: value })}
+            items={investmentCategories}
+            onAdd={(value, onSuccess) => addInvestmentCategory.mutate(value, { onSuccess })}
+            onDelete={(id) => deleteInvestmentCategory.mutate(id)}
+            isPending={addInvestmentCategory.isPending}
+            placeholder="카테고리 선택"
+          />
 
           <FormField label="종목명">
             <FormInput
@@ -250,9 +261,15 @@ const InvestmentModal = ({
             </div>
           </FormField>
 
-          <OwnerSelect
+          <ConfigSelectField
+            label="소유자"
             value={form.owner}
             onChange={(value) => setForm({ ...form, owner: value })}
+            items={assetOwners}
+            onAdd={(value, onSuccess) => addAssetOwner.mutate(value, { onSuccess })}
+            onDelete={(id) => deleteAssetOwner.mutate(id)}
+            isPending={addAssetOwner.isPending}
+            placeholder="소유자 선택"
           />
 
           <FormField label="매수단가 (선택)">

@@ -13,6 +13,7 @@ import {
 } from 'recharts'
 import { useGetDashboardSummary, useGetDashboardChart } from '@/queries/asset'
 import { DashboardChartItem } from '@/types/asset'
+import SnapshotChart from '@/components/asset/snapshot_chart'
 
 const TYPE_COLORS: Record<string, string> = {
   HOUSING: '#3b82f6',
@@ -37,7 +38,7 @@ function formatAmount(value: number) {
   return `${Math.floor(value / 10000).toLocaleString()}만`
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: DashboardChartItem }[] }) => {
   if (active && payload && payload.length) {
     const item: DashboardChartItem = payload[0].payload
     return (
@@ -98,6 +99,11 @@ export default function DashboardView() {
             <p className="mt-1 text-xs text-gray-400">{card.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* 추이 차트 */}
+      <div className="mb-4">
+        <SnapshotChart />
       </div>
 
       {/* 차트 영역 */}

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import QueryProvider from '@/providers/query_provider'
-import LayoutWrapper from '@/components/layout/layout_wrapper'
+import ConditionalLayout from '@/components/layout/conditional_layout'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -13,7 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body className="bg-gray-50">
         <QueryProvider>
-          <LayoutWrapper>{children}</LayoutWrapper>
+          <ConditionalLayout>{children}</ConditionalLayout>
         </QueryProvider>
       </body>
     </html>

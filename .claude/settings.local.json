@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /c/Users/hobin/IdeaProjects/asset_front/src -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.json \\\\\\))",
+      "Bash(npx playwright:*)",
+      "Bash(TEST_LOGIN_ID=hobin1 TEST_PASSWORD=hobin1234 npx playwright test --reporter=line)",
+      "Bash(curl:*)",
+      "Bash(TEST_LOGIN_ID=e2e_test_user TEST_PASSWORD=e2e_test_pass123 npx playwright test --reporter=line)"
+    ]
+  }
+}
