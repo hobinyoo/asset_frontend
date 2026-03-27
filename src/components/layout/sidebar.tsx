@@ -47,7 +47,7 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
         </nav>
 
         <div className="border-t border-gray-100 p-4">
-          <p className="text-xs text-gray-400">© 2026 YOO❤️JOO</p>
+          <p className="text-xs text-gray-400">© 2026 부자되기❤️</p>
         </div>
       </aside>
     </>
