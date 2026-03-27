@@ -19,19 +19,7 @@ import {
   useInvestmentDashboardChart,
 } from '@/queries/investment'
 import type { InvestmentDashboardPeriod, CategoryAmount } from '@/types/investment'
-
-const CATEGORY_COLORS = [
-  '#3b82f6',
-  '#22c55e',
-  '#f97316',
-  '#a855f7',
-  '#ef4444',
-  '#06b6d4',
-  '#eab308',
-  '#ec4899',
-  '#14b8a6',
-  '#f43f5e',
-]
+import { CATEGORY_COLORS } from '@/constants/options'
 
 const PERIODS: { label: string; value: InvestmentDashboardPeriod }[] = [
   { label: '7일', value: '7d' },

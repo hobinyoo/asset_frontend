@@ -9,8 +9,14 @@ import type { Investment } from '@/types/investment'
 import InvestmentModal from '@/components/investment/investment_modal'
 import TablePagination from '@/components/common/table_pagination'
 import { Pencil, Trash2 } from 'lucide-react'
+import { CATEGORY_COLORS } from '@/constants/options'
 
 const PAGE_SIZE = 10
+
+const getCategoryColor = (category: string, categoryItems: { value: string }[]) => {
+  const idx = categoryItems.findIndex((item) => item.value === category)
+  return CATEGORY_COLORS[(idx >= 0 ? idx : 0) % CATEGORY_COLORS.length]
+}
 
 function ProfitBadge({ rate }: { rate: number | null }) {
   if (rate === null) return <span className="text-gray-300">-</span>
@@ -190,7 +196,13 @@ export default function InvestmentTable() {
                       {inv.account} · {inv.owner}
                     </p>
                   </div>
-                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600">
+                  <span
+                    className="rounded-full px-2 py-0.5 text-xs font-medium"
+                    style={{
+                      backgroundColor: `${getCategoryColor(inv.category, categoryItems)}22`,
+                      color: getCategoryColor(inv.category, categoryItems),
+                    }}
+                  >
                     {inv.category}
                   </span>
                 </div>
@@ -277,7 +289,13 @@ export default function InvestmentTable() {
                     <tr key={inv.id} className="transition-colors hover:bg-gray-50/50">
                       <td className="px-4 py-3 text-gray-600">{inv.account}</td>
                       <td className="px-4 py-3">
-                        <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-600">
+                        <span
+                          className="rounded-full px-2 py-0.5 text-xs font-medium"
+                          style={{
+                            backgroundColor: `${getCategoryColor(inv.category, categoryItems)}22`,
+                            color: getCategoryColor(inv.category, categoryItems),
+                          }}
+                        >
                           {inv.category}
                         </span>
                       </td>
