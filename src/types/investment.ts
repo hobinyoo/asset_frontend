@@ -32,3 +32,31 @@ export interface InvestmentCreateRequest {
 }
 
 export type InvestmentUpdateRequest = InvestmentCreateRequest
+
+export interface CategoryAmount {
+  category: string
+  amount: number
+  percentage: number
+}
+
+export interface InvestmentDashboardSummaryResponse {
+  totalAmount: number
+  categories: CategoryAmount[]
+}
+
+export interface CategorySnapshot {
+  category: string
+  amount: number
+}
+
+export interface DailySnapshot {
+  snapshotDate: string
+  categories: CategorySnapshot[]
+}
+
+export interface InvestmentDashboardChartResponse {
+  period: string
+  data: DailySnapshot[]
+}
+
+export type InvestmentDashboardPeriod = '7d' | '30d' | '90d' | '1y'

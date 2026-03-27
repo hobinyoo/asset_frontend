@@ -1,5 +1,5 @@
-import InvestmentTable from '@/components/investment/investment_table'
+import InvestmentDashboard from '@/components/investment/investment_dashboard'
 
-export default async function InvestmentsPage() {
-  return <InvestmentTable />
+export default function InvestmentsPage() {
+  return <InvestmentDashboard />
 }

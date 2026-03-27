@@ -3,6 +3,9 @@ import type {
   Investment,
   InvestmentCreateRequest,
   InvestmentUpdateRequest,
+  InvestmentDashboardSummaryResponse,
+  InvestmentDashboardChartResponse,
+  InvestmentDashboardPeriod,
 } from '@/types/investment'
 import type { Paging } from '@/types/response'
 
@@ -32,5 +35,18 @@ export const putInvestment = async (
 
 export const deleteInvestment = async (id: number): Promise<void> => {
   await api.delete(`/api/investments/${id}`)
+}
+
+export const getInvestmentDashboardSummary =
+  async (): Promise<InvestmentDashboardSummaryResponse> => {
+    const { data } = await api.get('/api/investments/dashboard/summary')
+    return data.data
+  }
+
+export const getInvestmentDashboardChart = async (
+  period: InvestmentDashboardPeriod,
+): Promise<InvestmentDashboardChartResponse> => {
+  const { data } = await api.get(`/api/investments/dashboard/chart?period=${period}`)
+  return data.data
 }
 

@@ -3,15 +3,14 @@
 import { useState } from 'react'
 import { useDeleteInvestment, useGetInvestments } from '@/queries/investment'
 import { useGetLinkedAssets } from '@/queries/asset'
+import { useInvestmentCategories, useAssetOwners } from '@/queries/config'
 import { formatAmount } from '@/utils/format'
 import type { Investment } from '@/types/investment'
 import InvestmentModal from '@/components/investment/investment_modal'
 import TablePagination from '@/components/common/table_pagination'
 import { Pencil, Trash2 } from 'lucide-react'
-import { OWNER_OPTIONS } from '@/constants/options'
 
 const PAGE_SIZE = 10
-const CATEGORY_OPTIONS = ['ETF', '금', '현금', '채권', '국내주식', '해외주식', '기타']
 
 function ProfitBadge({ rate }: { rate: number | null }) {
   if (rate === null) return <span className="text-gray-300">-</span>
@@ -52,6 +51,8 @@ export default function InvestmentTable() {
 
   const { data, isPending, isError } = useGetInvestments({ ...filters, page, size: PAGE_SIZE })
   const { data: linkedAssets = [] } = useGetLinkedAssets()
+  const { data: categoryItems = [] } = useInvestmentCategories()
+  const { data: ownerItems = [] } = useAssetOwners()
   const deleteInvestment = useDeleteInvestment()
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -95,7 +96,7 @@ export default function InvestmentTable() {
   }
 
   return (
-    <div className="p-6">
+    <div>
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -131,9 +132,9 @@ export default function InvestmentTable() {
           onChange={(e) => handleFilterChange('category', e.target.value)}
         >
           <option value="">전체 카테고리</option>
-          {CATEGORY_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
+          {categoryItems.map((item) => (
+            <option key={item.id} value={item.value}>
+              {item.value}
             </option>
           ))}
         </select>
@@ -144,9 +145,9 @@ export default function InvestmentTable() {
           onChange={(e) => handleFilterChange('owner', e.target.value)}
         >
           <option value="">전체 소유자</option>
-          {OWNER_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
+          {ownerItems.map((item) => (
+            <option key={item.id} value={item.value}>
+              {item.value}
             </option>
           ))}
         </select>
