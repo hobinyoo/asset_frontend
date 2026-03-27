@@ -268,7 +268,7 @@ export default function InvestmentTable() {
           {/* 데스크탑 테이블 */}
           <div className="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full whitespace-nowrap text-sm">
                 <thead className="bg-gray-50 text-xs text-gray-500">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">계좌</th>
