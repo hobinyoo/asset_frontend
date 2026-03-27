@@ -1,5 +1,5 @@
-import InvestmentDashboard from '@/components/investment/investment_dashboard'
+import InvestmentTable from '@/components/investment/investment_table'
 
-export default function InvestmentDashboardPage() {
-  return <InvestmentDashboard />
+export default function InvestmentTablePage() {
+  return <InvestmentTable />
 }
