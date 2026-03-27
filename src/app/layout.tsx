@@ -4,7 +4,7 @@ import ConditionalLayout from '@/components/layout/conditional_layout'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'YOO❤️JOO 자산관리',
+  title: '부자되기❤️',
   description: '개인 자산 관리 서비스',
 }
 
