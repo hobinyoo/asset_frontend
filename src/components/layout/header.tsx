@@ -7,7 +7,7 @@ export default function Header({ onMenuClick }: { onMenuClick: () => void }) {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-40 flex h-14 items-center justify-between border-b border-gray-100 bg-white px-6">
-      <span className="text-base font-bold text-gray-900">자산관리</span>
+      <span className="text-base font-bold text-gray-900">부자되기❤️</span>
       <div className="flex items-center gap-3">
         <button
           onClick={() => logout()}
