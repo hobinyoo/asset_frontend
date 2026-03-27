@@ -55,3 +55,11 @@ export const getDashboardChart = async () => {
   const { data } = await api.get<DataResponse<DashboardChart>>('/api/assets/dashboard/chart')
   return data.data
 }
+
+export const syncAsset = async (assetId: number): Promise<void> => {
+  await api.post(`/api/assets/${assetId}/sync-investments`)
+}
+
+export const syncAllAssets = async (): Promise<void> => {
+  await api.post('/api/assets/sync-all')
+}

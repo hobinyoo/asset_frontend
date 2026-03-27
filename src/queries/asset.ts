@@ -9,6 +9,8 @@ import {
   postAsset,
   putAsset,
   reorderAsset,
+  syncAsset,
+  syncAllAssets,
 } from '@/api/asset'
 import type { AssetCreateRequest, AssetUpdateRequest } from '@/types/asset'
 
@@ -92,3 +94,23 @@ export const useGetDashboardChart = () =>
     queryKey: ASSET_KEYS.dashboardChart(),
     queryFn: getDashboardChart,
   })
+
+export const useSyncAsset = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (assetId: number) => syncAsset(assetId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+    },
+  })
+}
+
+export const useSyncAllAssets = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => syncAllAssets(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+    },
+  })
+}

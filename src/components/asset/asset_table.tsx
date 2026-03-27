@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteAsset, useGetAssets, useReorderAsset } from '@/queries/asset'
-import { useSyncAssetAmount } from '@/queries/investment'
+import { useDeleteAsset, useGetAssets, useReorderAsset, useSyncAllAssets, useSyncAsset } from '@/queries/asset'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
 import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
@@ -23,7 +22,8 @@ export default function AssetTable() {
   const { data, isPending, isError } = useGetAssets(page, PAGE_SIZE)
 
   const deleteAsset = useDeleteAsset()
-  const syncAsset = useSyncAssetAmount()
+  const syncAsset = useSyncAsset()
+  const syncAllAssets = useSyncAllAssets()
   const reorderAsset = useReorderAsset()
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -81,12 +81,22 @@ export default function AssetTable() {
           <h1 className="text-xl font-semibold text-gray-900">자산 목록</h1>
           <p className="text-sm text-gray-400">총 {totalElements}개</p>
         </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-        >
-          + 자산 등록
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => syncAllAssets.mutate()}
+            disabled={syncAllAssets.isPending}
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <RefreshCw size={14} className={syncAllAssets.isPending ? 'animate-spin' : ''} />
+            동기화
+          </button>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
+          >
+            + 자산 등록
+          </button>
+        </div>
       </div>
 
       {assets.length === 0 ? (
@@ -121,12 +131,12 @@ export default function AssetTable() {
                       {asset.linkedToInvestment && (
                         <button
                           onClick={() => handleSync(asset.id)}
-                          disabled={syncAsset.isPending}
+                          disabled={syncAsset.isPending && syncAsset.variables === asset.id}
                           className="text-gray-300 hover:text-blue-500 disabled:opacity-40"
                         >
                           <RefreshCw
                             size={12}
-                            className={syncAsset.isPending ? 'animate-spin' : ''}
+                            className={syncAsset.isPending && syncAsset.variables === asset.id ? 'animate-spin' : ''}
                           />
                         </button>
                       )}
@@ -219,13 +229,13 @@ export default function AssetTable() {
                         {asset.linkedToInvestment && (
                           <button
                             onClick={() => handleSync(asset.id)}
-                            disabled={syncAsset.isPending}
+                            disabled={syncAsset.isPending && syncAsset.variables === asset.id}
                             title="투자 종목 평가금액 합계로 자산 금액 동기화"
                             className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
                           >
                             <RefreshCw
                               size={13}
-                              className={syncAsset.isPending ? 'animate-spin' : ''}
+                              className={syncAsset.isPending && syncAsset.variables === asset.id ? 'animate-spin' : ''}
                             />
                           </button>
                         )}
