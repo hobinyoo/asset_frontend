@@ -197,7 +197,7 @@ export default function InvestmentTable() {
                     </p>
                   </div>
                   <span
-                    className="rounded-full px-2 py-0.5 text-xs font-medium"
+                    className="inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
                     style={{
                       backgroundColor: `${getCategoryColor(inv.category, categoryItems)}22`,
                       color: getCategoryColor(inv.category, categoryItems),
@@ -290,7 +290,7 @@ export default function InvestmentTable() {
                       <td className="px-4 py-3 text-gray-600">{inv.account}</td>
                       <td className="px-4 py-3">
                         <span
-                          className="rounded-full px-2 py-0.5 text-xs font-medium"
+                          className="inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
                           style={{
                             backgroundColor: `${getCategoryColor(inv.category, categoryItems)}22`,
                             color: getCategoryColor(inv.category, categoryItems),
