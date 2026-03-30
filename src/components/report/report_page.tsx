@@ -50,7 +50,7 @@ function ReportDetail({ report }: { report: DailyReport }) {
         </div>
       </div>
 
-      {/* 요약 (카톡용) */}
+      {/* 요약 */}
       <div className="mb-5 rounded-xl bg-yellow-50 p-4">
         <p className="mb-1 text-xs font-semibold text-yellow-600">💬 오늘의 요약</p>
         <p className="whitespace-pre-wrap text-sm text-gray-700">{report.summaryContent}</p>
@@ -110,6 +110,22 @@ function ReportDetail({ report }: { report: DailyReport }) {
         }
         .report-content .action p::before {
           content: '✅ ';
+        }
+        .report-content .recommendation {
+          background: #f0fdf4;
+          border-radius: 0.75rem;
+          padding: 1rem;
+          border: 1px solid #bbf7d0;
+        }
+        .report-content .recommendation h2 {
+          border-bottom-color: #bbf7d0;
+          color: #166534;
+        }
+        .report-content .analysis::before {
+          content: '📊 ';
+        }
+        .report-content .recommendation p.recommendation::before {
+          content: '🌱 ';
         }
         .report-content strong {
           color: #1e293b;
@@ -187,7 +203,6 @@ export default function ReportPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* 리포트 목록 */}
           <div className="space-y-2 lg:col-span-1">
             <p className="text-xs font-medium text-gray-400">리포트 목록</p>
             {reportList.map((report) => (
@@ -200,7 +215,6 @@ export default function ReportPage() {
             ))}
           </div>
 
-          {/* 리포트 상세 */}
           <div className="lg:col-span-2">
             {displayReport ? (
               <ReportDetail report={displayReport} />

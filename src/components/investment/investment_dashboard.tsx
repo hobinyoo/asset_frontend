@@ -100,7 +100,7 @@ const LineTooltip = ({
 export default function InvestmentDashboard() {
   const [period, setPeriod] = useState<InvestmentDashboardPeriod>('30d')
 
-  const { data: summary } = useInvestmentDashboardSummary()
+  const { data: summary, isPending } = useInvestmentDashboardSummary()
   const { data: chart } = useInvestmentDashboardChart(period)
 
   const categories = summary?.categories ?? []
@@ -119,6 +119,12 @@ export default function InvestmentDashboard() {
       }
       return entry
     }) ?? []
+
+  if (isPending) {
+    return (
+      <div className="flex h-40 items-center justify-center text-sm text-gray-400">로딩 중...</div>
+    )
+  }
 
   return (
     <div className="space-y-4 bg-gray-50 p-6">
