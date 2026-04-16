@@ -38,7 +38,13 @@ function formatAmount(value: number) {
   return `${Math.floor(value / 10000).toLocaleString()}만`
 }
 
-const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: { payload: DashboardChartItem }[] }) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean
+  payload?: { payload: DashboardChartItem }[]
+}) => {
   if (active && payload && payload.length) {
     const item: DashboardChartItem = payload[0].payload
     return (

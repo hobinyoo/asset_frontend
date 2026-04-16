@@ -1,7 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useDeleteAsset, useGetAssets, useReorderAsset, useSyncAllAssets, useSyncAsset } from '@/queries/asset'
+import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
+import {
+  useDeleteAsset,
+  useGetAssets,
+  useReorderAsset,
+  useSyncAllAssets,
+  useSyncAsset,
+} from '@/queries/asset'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import type { Asset } from '@/types/asset'
 import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
@@ -48,18 +55,146 @@ export default function AssetTable() {
   const handleSync = (assetId: number) => {
     syncAsset.mutate(assetId)
   }
-
   const handleMoveUp = (asset: Asset, index: number) => {
     if (index === 0 && page === 0) return
     const currentPosition = page * PAGE_SIZE + index + 1
     reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition - 1 })
   }
-
   const handleMoveDown = (asset: Asset, index: number) => {
     if (index === assets.length - 1 && page === totalPages - 1) return
     const currentPosition = page * PAGE_SIZE + index + 1
     reorderAsset.mutate({ id: asset.id, targetPosition: currentPosition + 1 })
   }
+
+  const columns: ColumnDef<Asset>[] = [
+    {
+      accessorKey: 'category',
+      header: '카테고리',
+      cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.category}</span>,
+    },
+    {
+      accessorKey: 'owner',
+      header: '소유자',
+      cell: ({ row }) => <span className="text-gray-600">{row.original.owner}</span>,
+    },
+    {
+      accessorKey: 'type',
+      header: '유형',
+      cell: ({ row }) => (
+        <span
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[row.original.type] ?? 'bg-gray-100 text-gray-600'}`}
+        >
+          {formatAssetType(row.original.type)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'amount',
+      header: () => <span className="block text-right font-medium">금액</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-1 font-medium text-gray-800">
+          {row.original.linkedToInvestment && (
+            <button
+              onClick={() => handleSync(row.original.id)}
+              disabled={syncAsset.isPending && syncAsset.variables === row.original.id}
+              title="투자 종목 평가금액 합계로 자산 금액 동기화"
+              className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
+            >
+              <RefreshCw
+                size={13}
+                className={
+                  syncAsset.isPending && syncAsset.variables === row.original.id
+                    ? 'animate-spin'
+                    : ''
+                }
+              />
+            </button>
+          )}
+          {formatAmount(row.original.amount)}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'monthlyPayment',
+      header: () => <span className="block text-right font-medium">월 납입금</span>,
+      cell: ({ row }) => (
+        <span className="block text-right text-gray-500">
+          {row.original.monthlyPayment ? formatAmount(row.original.monthlyPayment) : '-'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'paymentDay',
+      header: '납입일',
+      cell: ({ row }) => (
+        <span className="block text-center text-gray-500">
+          {row.original.paymentDay ? `${row.original.paymentDay}일` : '-'}
+        </span>
+      ),
+    },
+    {
+      accessorKey: 'linkedToInvestment',
+      header: '투자연동',
+      cell: ({ row }) => (
+        <span className="block text-center">
+          {row.original.linkedToInvestment ? (
+            <span className="text-green-500">●</span>
+          ) : (
+            <span className="text-gray-200">●</span>
+          )}
+        </span>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '관리',
+      cell: ({ row }) => {
+        const index = row.index
+        const isFirst = index === 0 && page === 0
+        const isLast = index === assets.length - 1 && page === totalPages - 1
+        return (
+          <div className="flex items-center justify-center gap-0.5">
+            <button
+              onClick={() => handleMoveUp(row.original, index)}
+              disabled={isFirst}
+              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+              title="위로 이동"
+            >
+              <ChevronUp size={15} />
+            </button>
+            <button
+              onClick={() => handleMoveDown(row.original, index)}
+              disabled={isLast}
+              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
+              title="아래로 이동"
+            >
+              <ChevronDown size={15} />
+            </button>
+            <button
+              onClick={() => handleEdit(row.original)}
+              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
+              title="수정"
+            >
+              <Pencil size={14} />
+            </button>
+            <button
+              onClick={() => handleDelete(row.original.id)}
+              className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
+              title="삭제"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )
+      },
+    },
+  ]
+
+  const table = useReactTable({
+    data: assets,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   if (isPending) {
     return (
@@ -136,7 +271,11 @@ export default function AssetTable() {
                         >
                           <RefreshCw
                             size={12}
-                            className={syncAsset.isPending && syncAsset.variables === asset.id ? 'animate-spin' : ''}
+                            className={
+                              syncAsset.isPending && syncAsset.variables === asset.id
+                                ? 'animate-spin'
+                                : ''
+                            }
                           />
                         </button>
                       )}
@@ -201,94 +340,24 @@ export default function AssetTable() {
           <div className="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 text-xs text-gray-500">
-                <tr>
-                  <th className="px-4 py-3 text-left font-medium">카테고리</th>
-                  <th className="px-4 py-3 text-left font-medium">소유자</th>
-                  <th className="px-4 py-3 text-left font-medium">유형</th>
-                  <th className="px-4 py-3 text-right font-medium">금액</th>
-                  <th className="px-4 py-3 text-right font-medium">월 납입금</th>
-                  <th className="px-4 py-3 text-center font-medium">납입일</th>
-                  <th className="px-4 py-3 text-center font-medium">투자연동</th>
-                  <th className="px-4 py-3 text-center font-medium">관리</th>
-                </tr>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <th key={header.id} className="px-4 py-3 text-left font-medium">
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {assets.map((asset, index) => (
-                  <tr key={asset.id} className="transition-colors hover:bg-gray-50/50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{asset.category}</td>
-                    <td className="px-4 py-3 text-gray-600">{asset.owner}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-gray-100 text-gray-600'}`}
-                      >
-                        {formatAssetType(asset.type)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-medium text-gray-800">
-                      <div className="flex items-center justify-end gap-1">
-                        {asset.linkedToInvestment && (
-                          <button
-                            onClick={() => handleSync(asset.id)}
-                            disabled={syncAsset.isPending && syncAsset.variables === asset.id}
-                            title="투자 종목 평가금액 합계로 자산 금액 동기화"
-                            className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
-                          >
-                            <RefreshCw
-                              size={13}
-                              className={syncAsset.isPending && syncAsset.variables === asset.id ? 'animate-spin' : ''}
-                            />
-                          </button>
-                        )}
-                        {formatAmount(asset.amount)}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-500">
-                      {asset.monthlyPayment ? formatAmount(asset.monthlyPayment) : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-center text-gray-500">
-                      {asset.paymentDay ? `${asset.paymentDay}일` : '-'}
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {asset.linkedToInvestment ? (
-                        <span className="text-green-500">●</span>
-                      ) : (
-                        <span className="text-gray-200">●</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-0.5">
-                        <button
-                          onClick={() => handleMoveUp(asset, index)}
-                          disabled={index === 0 && page === 0}
-                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-                          title="위로 이동"
-                        >
-                          <ChevronUp size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleMoveDown(asset, index)}
-                          disabled={index === assets.length - 1 && page === totalPages - 1}
-                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-                          title="아래로 이동"
-                        >
-                          <ChevronDown size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleEdit(asset)}
-                          className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
-                          title="수정"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(asset.id)}
-                          className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
-                          title="삭제"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </td>
+                {table.getRowModel().rows.map((row) => (
+                  <tr key={row.id} className="transition-colors hover:bg-gray-50/50">
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-4 py-3">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>

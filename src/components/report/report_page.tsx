@@ -1,8 +1,105 @@
 'use client'
 
 import { useState } from 'react'
-import { useGenerateReport, useGetReports } from '@/queries/report'
+import { useQueryClient } from '@tanstack/react-query'
+import { useGetReports, REPORT_KEYS } from '@/queries/report'
 import { DailyReport } from '@/types/report'
+
+type CollectResult = {
+  ticker: string
+  stockName: string
+  message: string
+}
+
+type ProgressState = {
+  phase: 'idle' | 'collect' | 'embed' | 'report'
+  collectResults: CollectResult[]
+  embedCount: number
+  embedTotal: number
+}
+
+function useGenerateReportSSE(onComplete: (report: DailyReport) => void) {
+  const queryClient = useQueryClient()
+  const [isStreaming, setIsStreaming] = useState(false)
+  const [progress, setProgress] = useState<ProgressState>({
+    phase: 'idle',
+    collectResults: [],
+    embedCount: 0,
+    embedTotal: 0,
+  })
+
+  const start = () => {
+    setIsStreaming(true)
+    setProgress({ phase: 'collect', collectResults: [], embedCount: 0, embedTotal: 0 })
+
+    const eventSource = new EventSource(
+      `${process.env.NEXT_PUBLIC_API_URL}/api/reports/generate/stream`,
+      { withCredentials: true },
+    )
+
+    eventSource.onmessage = (e) => {
+      const event = JSON.parse(e.data)
+
+      if (event.type === 'COLLECT' && event.status === 'PROGRESS') {
+        setProgress((prev) => ({
+          ...prev,
+          phase: 'collect',
+          collectResults: [
+            ...prev.collectResults,
+            {
+              ticker: event.ticker,
+              stockName: event.stockName,
+              message: event.message,
+            },
+          ],
+        }))
+      }
+
+      if (event.type === 'EMBED') {
+        if (event.status === 'START') {
+          setProgress((prev) => ({ ...prev, phase: 'embed' }))
+        }
+        if (event.status === 'PROGRESS') {
+          setProgress((prev) => ({
+            ...prev,
+            embedCount: event.current,
+            embedTotal: event.total,
+          }))
+        }
+      }
+
+      if (event.type === 'REPORT' && event.status === 'START') {
+        setProgress((prev) => ({ ...prev, phase: 'report' }))
+      }
+
+      if (event.type === 'REPORT' && event.status === 'COMPLETE') {
+        const newReport = event.data as DailyReport
+        queryClient.setQueryData(REPORT_KEYS.list(), (old: DailyReport[] | undefined) => [
+          newReport,
+          ...(old ?? []),
+        ])
+        onComplete(newReport)
+        setIsStreaming(false)
+        setProgress({ phase: 'idle', collectResults: [], embedCount: 0, embedTotal: 0 })
+        eventSource.close()
+      }
+
+      if (event.type === 'ERROR') {
+        setIsStreaming(false)
+        setProgress({ phase: 'idle', collectResults: [], embedCount: 0, embedTotal: 0 })
+        eventSource.close()
+      }
+    }
+
+    eventSource.onerror = () => {
+      setIsStreaming(false)
+      setProgress({ phase: 'idle', collectResults: [], embedCount: 0, embedTotal: 0 })
+      eventSource.close()
+    }
+  }
+
+  return { isStreaming, progress, start }
+}
 
 function ReportCard({
   report,
@@ -138,17 +235,17 @@ function ReportDetail({ report }: { report: DailyReport }) {
 
 export default function ReportPage() {
   const { data: reports, isPending, isError } = useGetReports()
-  const generateReport = useGenerateReport()
   const [selectedReport, setSelectedReport] = useState<DailyReport | null>(null)
 
+  const sse = useGenerateReportSSE((newReport) => {
+    setSelectedReport(newReport)
+  })
+
   const reportList: DailyReport[] = reports ?? []
+  const { progress } = sse
 
   const handleGenerate = () => {
-    generateReport.mutate(undefined, {
-      onSuccess: (newReport) => {
-        setSelectedReport(newReport)
-      },
-    })
+    sse.start()
   }
 
   const displayReport = selectedReport ?? (reportList.length > 0 ? reportList[0] : null)
@@ -176,27 +273,72 @@ export default function ReportPage() {
         </div>
         <button
           onClick={handleGenerate}
-          disabled={generateReport.isPending}
+          disabled={sse.isStreaming}
           className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
         >
-          {generateReport.isPending ? '생성 중...' : '🤖 오늘 리포트 생성'}
+          {sse.isStreaming ? '생성 중...' : '🤖 오늘 리포트 생성'}
         </button>
       </div>
 
-      {generateReport.isPending && (
-        <div className="mb-4 flex items-center gap-2 rounded-xl bg-blue-50 p-4 text-sm text-blue-600">
-          <span className="animate-spin">⟳</span>
-          AI가 종목을 분석하고 있습니다... (약 10~20초 소요)
+      {sse.isStreaming && (
+        <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+          {/* 단계 설명 */}
+          <p className="mb-3 text-xs font-semibold text-blue-600">
+            {progress.phase === 'collect' && '📡 보유 종목 관련 최신 뉴스를 수집하고 있습니다...'}
+            {progress.phase === 'embed' &&
+              '🧠 수집된 기사를 AI가 투자자 관점으로 요약하고 있습니다...'}
+            {progress.phase === 'report' &&
+              '📊 수집된 뉴스를 바탕으로 리포트를 생성하고 있습니다...'}
+          </p>
+
+          {/* COLLECT 결과 */}
+          {progress.collectResults.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1 text-xs text-gray-500">뉴스 수집 현황</p>
+              <div className="space-y-1">
+                {progress.collectResults.map((r, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between border-b border-blue-100 py-1 text-xs text-gray-600"
+                  >
+                    <span className="font-medium">{r.stockName}</span>
+                    <span className="text-gray-400">{r.message}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* EMBED 진행률 */}
+          {progress.phase === 'embed' && progress.embedTotal > 0 && (
+            <div className="mb-3">
+              <div className="mb-1 flex justify-between text-xs text-gray-500">
+                <span>기사 요약 중</span>
+                <span>
+                  {progress.embedCount} / {progress.embedTotal}
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-blue-200">
+                <div
+                  className="h-1.5 rounded-full bg-blue-500 transition-all"
+                  style={{
+                    width: `${(progress.embedCount / progress.embedTotal) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {reportList.length === 0 && !generateReport.isPending ? (
+      {reportList.length === 0 && !sse.isStreaming ? (
         <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 text-gray-400">
           <span className="text-4xl">📭</span>
           <p className="text-sm">아직 리포트가 없습니다</p>
           <button
             onClick={handleGenerate}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
+            disabled={sse.isStreaming}
+            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
           >
             첫 리포트 생성하기
           </button>
