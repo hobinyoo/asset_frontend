@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import type { Debt, DebtCreateRequest, DebtType, DebtUpdateRequest } from '@/types/debt'
 import { usePostDebt, usePutDebt } from '@/queries/debt'
@@ -70,7 +72,7 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
     <Dialog open onOpenChange={onClose}>
       <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             {isEdit ? '부채 수정' : '부채 등록'}
           </DialogTitle>
         </DialogHeader>
@@ -134,7 +136,7 @@ const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
                     placeholder="예) 25 (매달 25일)"
                     className="pr-8"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
                     일
                   </span>
                 </div>

@@ -10,6 +10,7 @@ import InvestmentModal from '@/components/investment/investment_modal'
 import TablePagination from '@/components/common/table_pagination'
 import { Pencil, Trash2 } from 'lucide-react'
 import { CATEGORY_COLORS } from '@/constants/options'
+import { Button } from '@/components/ui/button'
 
 const PAGE_SIZE = 10
 
@@ -18,8 +19,9 @@ const getCategoryColor = (category: string, categoryItems: { value: string }[]) 
   return CATEGORY_COLORS[(idx >= 0 ? idx : 0) % CATEGORY_COLORS.length]
 }
 
+// 한국 주식시장 관례: 상승=빨강, 하락=파랑 — 의도적 설계, 변경 금지
 function ProfitBadge({ rate }: { rate: number | null }) {
-  if (rate === null) return <span className="text-gray-300">-</span>
+  if (rate === null) return <span className="text-border">-</span>
   const isPlus = rate >= 0
   return (
     <span className={`font-medium ${isPlus ? 'text-red-500' : 'text-blue-500'}`}>
@@ -36,7 +38,7 @@ function ProfitAmount({
   evaluationAmount: number | null
   purchaseAmount: number | null
 }) {
-  if (!evaluationAmount || !purchaseAmount) return <span className="text-gray-300">-</span>
+  if (!evaluationAmount || !purchaseAmount) return <span className="text-border">-</span>
   const diff = evaluationAmount - purchaseAmount
   const isPlus = diff >= 0
   return (
@@ -90,12 +92,12 @@ export default function InvestmentTable() {
 
   if (isPending) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-gray-400">로딩 중...</div>
+      <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">로딩 중...</div>
     )
   }
   if (isError) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-red-400">
+      <div className="flex h-40 items-center justify-center text-sm text-destructive">
         에러가 발생했습니다.
       </div>
     )
@@ -106,21 +108,16 @@ export default function InvestmentTable() {
       {/* 헤더 */}
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">투자 종목</h1>
-          <p className="text-sm text-gray-400">총 {data?.totalElements ?? 0}개</p>
+          <h1 className="text-xl font-semibold text-foreground">투자 종목</h1>
+          <p className="text-sm text-muted-foreground">총 {data?.totalElements ?? 0}개</p>
         </div>
-        <button
-          onClick={() => setModalOpen(true)}
-          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-        >
-          + 종목 등록
-        </button>
+        <Button onClick={() => setModalOpen(true)}>+ 종목 등록</Button>
       </div>
 
       {/* 필터 */}
       <div className="mb-4 flex flex-wrap gap-2">
         <select
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground outline-none focus:border-primary bg-background"
           value={filters.assetId ?? ''}
           onChange={(e) => handleFilterChange('assetId', Number(e.target.value))}
         >
@@ -133,7 +130,7 @@ export default function InvestmentTable() {
         </select>
 
         <select
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground outline-none focus:border-primary bg-background"
           value={filters.category ?? ''}
           onChange={(e) => handleFilterChange('category', e.target.value)}
         >
@@ -146,7 +143,7 @@ export default function InvestmentTable() {
         </select>
 
         <select
-          className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600 outline-none focus:border-blue-400"
+          className="rounded-lg border border-border px-3 py-1.5 text-sm text-muted-foreground outline-none focus:border-primary bg-background"
           value={filters.owner ?? ''}
           onChange={(e) => handleFilterChange('owner', e.target.value)}
         >
@@ -159,20 +156,21 @@ export default function InvestmentTable() {
         </select>
 
         {(filters.assetId || filters.category || filters.owner) && (
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => {
               setFilters({})
               setPage(0)
             }}
-            className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-400 hover:bg-gray-50"
           >
             초기화
-          </button>
+          </Button>
         )}
       </div>
 
       {investments.length === 0 ? (
-        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400">
+        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
           등록된 종목이 없습니다
         </div>
       ) : (
@@ -182,17 +180,17 @@ export default function InvestmentTable() {
             {investments.map((inv) => (
               <div
                 key={inv.id}
-                className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
+                className="rounded-xl border border-border bg-card p-4 shadow-sm"
               >
                 <div className="mb-3 flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-800">
+                    <p className="font-medium text-foreground">
                       {inv.stockName}
                       {inv.ticker && (
-                        <span className="ml-1 text-xs text-gray-400">({inv.ticker})</span>
+                        <span className="ml-1 text-xs text-muted-foreground">({inv.ticker})</span>
                       )}
                     </p>
-                    <p className="mt-0.5 text-xs text-gray-400">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       {inv.account} · {inv.owner}
                     </p>
                   </div>
@@ -209,24 +207,24 @@ export default function InvestmentTable() {
                 <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   {inv.purchaseAmount && (
                     <div>
-                      <p className="text-xs text-gray-400">매수금액</p>
-                      <p className="text-gray-600">{formatAmount(inv.purchaseAmount)}</p>
+                      <p className="text-xs text-muted-foreground">매수금액</p>
+                      <p className="text-muted-foreground">{formatAmount(inv.purchaseAmount)}</p>
                     </div>
                   )}
                   {inv.evaluationAmount && (
                     <div>
-                      <p className="text-xs text-gray-400">평가금액</p>
-                      <p className="font-medium text-gray-800">
+                      <p className="text-xs text-muted-foreground">평가금액</p>
+                      <p className="font-medium text-foreground">
                         {formatAmount(inv.evaluationAmount)}
                       </p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs text-gray-400">수익률</p>
+                    <p className="text-xs text-muted-foreground">수익률</p>
                     <ProfitBadge rate={inv.profitRate} />
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">평가손익</p>
+                    <p className="text-xs text-muted-foreground">평가손익</p>
                     <ProfitAmount
                       evaluationAmount={inv.evaluationAmount}
                       purchaseAmount={inv.purchaseAmount}
@@ -234,42 +232,36 @@ export default function InvestmentTable() {
                   </div>
                   {inv.quantity && (
                     <div>
-                      <p className="text-xs text-gray-400">수량</p>
-                      <p className="text-gray-600">{inv.quantity}주</p>
+                      <p className="text-xs text-muted-foreground">수량</p>
+                      <p className="text-muted-foreground">{inv.quantity}주</p>
                     </div>
                   )}
                   {inv.purchasePrice && (
                     <div>
-                      <p className="text-xs text-gray-400">매수단가</p>
-                      <p className="text-gray-600">{formatAmount(inv.purchasePrice)}</p>
+                      <p className="text-xs text-muted-foreground">매수단가</p>
+                      <p className="text-muted-foreground">{formatAmount(inv.purchasePrice)}</p>
                     </div>
                   )}
                 </div>
-                <div className="flex gap-1 border-t border-gray-50 pt-3">
-                  <button
-                    onClick={() => handleEdit(inv)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100 flex items-center justify-center gap-1"
-                  >
+                <div className="flex gap-1 border-t border-border pt-3">
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEdit(inv)}>
                     <Pencil size={12} />
                     수정
-                  </button>
-                  <button
-                    onClick={() => handleDelete(inv.id)}
-                    className="flex-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50 flex items-center justify-center gap-1"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex-1 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(inv.id)}>
                     <Trash2 size={12} />
                     삭제
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
           {/* 데스크탑 테이블 */}
-          <div className="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm md:block">
             <div className="overflow-x-auto">
               <table className="w-full whitespace-nowrap text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500">
+                <thead className="bg-muted text-xs text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 text-left font-medium">계좌</th>
                     <th className="px-4 py-3 text-left font-medium">카테고리</th>
@@ -284,10 +276,10 @@ export default function InvestmentTable() {
                     <th className="px-4 py-3 text-center font-medium">관리</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-border">
                   {investments.map((inv) => (
-                    <tr key={inv.id} className="transition-colors hover:bg-gray-50/50">
-                      <td className="px-4 py-3 text-gray-600">{inv.account}</td>
+                    <tr key={inv.id} className="transition-colors hover:bg-muted/50">
+                      <td className="px-4 py-3 text-muted-foreground">{inv.account}</td>
                       <td className="px-4 py-3">
                         <span
                           className="inline-block whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-medium"
@@ -299,23 +291,23 @@ export default function InvestmentTable() {
                           {inv.category}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-medium text-gray-800">
+                      <td className="px-4 py-3 font-medium text-foreground">
                         {inv.stockName}
                         {inv.ticker && (
-                          <span className="ml-1 text-xs text-gray-400">({inv.ticker})</span>
+                          <span className="ml-1 text-xs text-muted-foreground">({inv.ticker})</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{inv.owner}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">
+                      <td className="px-4 py-3 text-muted-foreground">{inv.owner}</td>
+                      <td className="px-4 py-3 text-right text-muted-foreground">
                         {inv.purchasePrice ? formatAmount(inv.purchasePrice) : '-'}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
+                      <td className="px-4 py-3 text-right text-muted-foreground">
                         {inv.quantity ? `${inv.quantity}주` : '-'}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
+                      <td className="px-4 py-3 text-right text-muted-foreground">
                         {inv.purchaseAmount ? formatAmount(inv.purchaseAmount) : '-'}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-800">
+                      <td className="px-4 py-3 text-right font-medium text-foreground">
                         {inv.evaluationAmount ? formatAmount(inv.evaluationAmount) : '-'}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -329,18 +321,12 @@ export default function InvestmentTable() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex justify-center gap-1">
-                          <button
-                            onClick={() => handleEdit(inv)}
-                            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                          >
+                          <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(inv)} title="수정">
                             <Pencil size={14} />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(inv.id)}
-                            className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-400"
-                          >
+                          </Button>
+                          <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(inv.id)} title="삭제" className="hover:bg-destructive/10 hover:text-destructive">
                             <Trash2 size={14} />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

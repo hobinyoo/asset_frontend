@@ -14,9 +14,11 @@ import type { Asset } from '@/types/asset'
 import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import AssetModal from '@/components/asset/asset_modal'
 import TablePagination from '@/components/common/table_pagination'
+import { Button } from '@/components/ui/button'
 
 const PAGE_SIZE = 10
 
+// 데이터 시각화용 카테고리 색상 — 디자인 토큰 아님, 유지
 const TYPE_STYLE: Record<string, string> = {
   HOUSING: 'bg-blue-50 text-blue-600',
   SAVINGS: 'bg-orange-50 text-orange-600',
@@ -70,19 +72,19 @@ export default function AssetTable() {
     {
       accessorKey: 'category',
       header: '카테고리',
-      cell: ({ row }) => <span className="font-medium text-gray-800">{row.original.category}</span>,
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.category}</span>,
     },
     {
       accessorKey: 'owner',
       header: '소유자',
-      cell: ({ row }) => <span className="text-gray-600">{row.original.owner}</span>,
+      cell: ({ row }) => <span className="text-muted-foreground">{row.original.owner}</span>,
     },
     {
       accessorKey: 'type',
       header: '유형',
       cell: ({ row }) => (
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[row.original.type] ?? 'bg-gray-100 text-gray-600'}`}
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[row.original.type] ?? 'bg-muted text-muted-foreground'}`}
         >
           {formatAssetType(row.original.type)}
         </span>
@@ -92,13 +94,14 @@ export default function AssetTable() {
       accessorKey: 'amount',
       header: () => <span className="block text-right font-medium">금액</span>,
       cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1 font-medium text-gray-800">
+        <div className="flex items-center justify-end gap-1 font-medium text-foreground">
           {row.original.linkedToInvestment && (
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => handleSync(row.original.id)}
               disabled={syncAsset.isPending && syncAsset.variables === row.original.id}
               title="투자 종목 평가금액 합계로 자산 금액 동기화"
-              className="text-gray-300 transition-colors hover:text-blue-500 disabled:opacity-40"
             >
               <RefreshCw
                 size={13}
@@ -108,7 +111,7 @@ export default function AssetTable() {
                     : ''
                 }
               />
-            </button>
+            </Button>
           )}
           {formatAmount(row.original.amount)}
         </div>
@@ -118,7 +121,7 @@ export default function AssetTable() {
       accessorKey: 'monthlyPayment',
       header: () => <span className="block text-right font-medium">월 납입금</span>,
       cell: ({ row }) => (
-        <span className="block text-right text-gray-500">
+        <span className="block text-right text-muted-foreground">
           {row.original.monthlyPayment ? formatAmount(row.original.monthlyPayment) : '-'}
         </span>
       ),
@@ -127,7 +130,7 @@ export default function AssetTable() {
       accessorKey: 'paymentDay',
       header: '납입일',
       cell: ({ row }) => (
-        <span className="block text-center text-gray-500">
+        <span className="block text-center text-muted-foreground">
           {row.original.paymentDay ? `${row.original.paymentDay}일` : '-'}
         </span>
       ),
@@ -138,9 +141,9 @@ export default function AssetTable() {
       cell: ({ row }) => (
         <span className="block text-center">
           {row.original.linkedToInvestment ? (
-            <span className="text-green-500">●</span>
+            <span className="text-success">●</span>
           ) : (
-            <span className="text-gray-200">●</span>
+            <span className="text-border">●</span>
           )}
         </span>
       ),
@@ -154,36 +157,24 @@ export default function AssetTable() {
         const isLast = index === assets.length - 1 && page === totalPages - 1
         return (
           <div className="flex items-center justify-center gap-0.5">
-            <button
-              onClick={() => handleMoveUp(row.original, index)}
-              disabled={isFirst}
-              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-              title="위로 이동"
-            >
+            <Button variant="ghost" size="icon-sm" onClick={() => handleMoveUp(row.original, index)} disabled={isFirst} title="위로 이동">
               <ChevronUp size={15} />
-            </button>
-            <button
-              onClick={() => handleMoveDown(row.original, index)}
-              disabled={isLast}
-              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-gray-600 disabled:opacity-30"
-              title="아래로 이동"
-            >
+            </Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => handleMoveDown(row.original, index)} disabled={isLast} title="아래로 이동">
               <ChevronDown size={15} />
-            </button>
-            <button
-              onClick={() => handleEdit(row.original)}
-              className="rounded p-1 text-gray-300 transition-colors hover:bg-gray-100 hover:text-blue-500"
-              title="수정"
-            >
+            </Button>
+            <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(row.original)} title="수정">
               <Pencil size={14} />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={() => handleDelete(row.original.id)}
-              className="rounded p-1 text-gray-300 transition-colors hover:bg-red-50 hover:text-red-400"
               title="삭제"
+              className="hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 size={14} />
-            </button>
+            </Button>
           </div>
         )
       },
@@ -198,12 +189,12 @@ export default function AssetTable() {
 
   if (isPending) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-gray-400">로딩 중...</div>
+      <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">로딩 중...</div>
     )
   }
   if (isError) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-red-400">
+      <div className="flex h-40 items-center justify-center text-sm text-destructive">
         에러가 발생했습니다.
       </div>
     )
@@ -213,29 +204,24 @@ export default function AssetTable() {
     <div className="p-2">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">자산 목록</h1>
-          <p className="text-sm text-gray-400">총 {totalElements}개</p>
+          <h1 className="text-xl font-semibold text-foreground">자산 목록</h1>
+          <p className="text-sm text-muted-foreground">총 {totalElements}개</p>
         </div>
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="outline"
             onClick={() => syncAllAssets.mutate()}
             disabled={syncAllAssets.isPending}
-            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
           >
             <RefreshCw size={14} className={syncAllAssets.isPending ? 'animate-spin' : ''} />
             동기화
-          </button>
-          <button
-            onClick={() => setModalOpen(true)}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
-          >
-            + 자산 등록
-          </button>
+          </Button>
+          <Button onClick={() => setModalOpen(true)}>+ 자산 등록</Button>
         </div>
       </div>
 
       {assets.length === 0 ? (
-        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400">
+        <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
           등록된 자산이 없습니다
         </div>
       ) : (
@@ -243,103 +229,83 @@ export default function AssetTable() {
           {/* 모바일 카드 */}
           <div className="space-y-3 md:hidden">
             {assets.map((asset, index) => (
-              <div
-                key={asset.id}
-                className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm"
-              >
+              <div key={asset.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <div className="mb-3 flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-800">{asset.category}</p>
-                    <p className="mt-0.5 text-xs text-gray-400">{asset.owner}</p>
+                    <p className="font-medium text-foreground">{asset.category}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">{asset.owner}</p>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-gray-100 text-gray-600'}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-muted text-muted-foreground'}`}
                   >
                     {formatAssetType(asset.type)}
                   </span>
                 </div>
                 <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
                   <div>
-                    <p className="text-xs text-gray-400">금액</p>
+                    <p className="text-xs text-muted-foreground">금액</p>
                     <div className="flex items-center gap-1">
-                      <p className="font-medium text-gray-800">{formatAmount(asset.amount)}</p>
+                      <p className="font-medium text-foreground">{formatAmount(asset.amount)}</p>
                       {asset.linkedToInvestment && (
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => handleSync(asset.id)}
                           disabled={syncAsset.isPending && syncAsset.variables === asset.id}
-                          className="text-gray-300 hover:text-blue-500 disabled:opacity-40"
                         >
                           <RefreshCw
                             size={12}
-                            className={
-                              syncAsset.isPending && syncAsset.variables === asset.id
-                                ? 'animate-spin'
-                                : ''
-                            }
+                            className={syncAsset.isPending && syncAsset.variables === asset.id ? 'animate-spin' : ''}
                           />
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>
                   {asset.monthlyPayment && (
                     <div>
-                      <p className="text-xs text-gray-400">월 납입금</p>
-                      <p className="text-gray-600">{formatAmount(asset.monthlyPayment)}</p>
+                      <p className="text-xs text-muted-foreground">월 납입금</p>
+                      <p className="text-muted-foreground">{formatAmount(asset.monthlyPayment)}</p>
                     </div>
                   )}
                   {asset.paymentDay && (
                     <div>
-                      <p className="text-xs text-gray-400">납입일</p>
-                      <p className="text-gray-600">매달 {asset.paymentDay}일</p>
+                      <p className="text-xs text-muted-foreground">납입일</p>
+                      <p className="text-muted-foreground">매달 {asset.paymentDay}일</p>
                     </div>
                   )}
                   <div>
-                    <p className="text-xs text-gray-400">투자연동</p>
+                    <p className="text-xs text-muted-foreground">투자연동</p>
                     <p>
                       {asset.linkedToInvestment ? (
-                        <span className="text-green-500">●</span>
+                        <span className="text-success">●</span>
                       ) : (
-                        <span className="text-gray-200">●</span>
+                        <span className="text-border">●</span>
                       )}
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-1 border-t border-gray-50 pt-3">
-                  <button
-                    onClick={() => handleMoveUp(asset, index)}
-                    disabled={index === 0 && page === 0}
-                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-400 hover:bg-gray-100 disabled:opacity-30"
-                  >
+                <div className="flex gap-1 border-t border-border pt-3">
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleMoveUp(asset, index)} disabled={index === 0 && page === 0}>
                     <ChevronUp size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleMoveDown(asset, index)}
-                    disabled={index === assets.length - 1 && page === totalPages - 1}
-                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-400 hover:bg-gray-100 disabled:opacity-30"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleMoveDown(asset, index)} disabled={index === assets.length - 1 && page === totalPages - 1}>
                     <ChevronDown size={14} />
-                  </button>
-                  <button
-                    onClick={() => handleEdit(asset)}
-                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-gray-500 hover:bg-gray-100"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex-1" onClick={() => handleEdit(asset)}>
                     <Pencil size={13} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(asset.id)}
-                    className="flex flex-1 items-center justify-center gap-1 rounded-md py-1.5 text-xs text-red-400 hover:bg-red-50"
-                  >
+                  </Button>
+                  <Button variant="ghost" size="sm" className="flex-1 hover:bg-destructive/10 hover:text-destructive" onClick={() => handleDelete(asset.id)}>
                     <Trash2 size={13} />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
 
           {/* 데스크탑 테이블 */}
-          <div className="hidden overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm md:block">
+          <div className="hidden overflow-hidden rounded-xl border border-border bg-card shadow-sm md:block">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-xs text-gray-500">
+              <thead className="bg-muted text-xs text-muted-foreground">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -350,9 +316,9 @@ export default function AssetTable() {
                   </tr>
                 ))}
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-border">
                 {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="transition-colors hover:bg-gray-50/50">
+                  <tr key={row.id} className="transition-colors hover:bg-muted/50">
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} className="px-4 py-3">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

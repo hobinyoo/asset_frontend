@@ -6,6 +6,7 @@ import { useGenerateReportSSE } from '@/hooks/use_generate_report_sse'
 import { ReportCard } from '@/components/report/report_card'
 import { ReportDetail } from '@/components/report/report_detail'
 import type { DailyReport } from '@/types/report'
+import { Button } from '@/components/ui/button'
 
 export default function ReportView() {
   const { data: reports, isPending, isError } = useGetReports()
@@ -26,13 +27,13 @@ export default function ReportView() {
 
   if (isPending) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-gray-400">로딩 중...</div>
+      <div className="flex h-40 items-center justify-center text-sm text-muted-foreground">로딩 중...</div>
     )
   }
 
   if (isError) {
     return (
-      <div className="flex h-40 items-center justify-center text-sm text-red-400">
+      <div className="flex h-40 items-center justify-center text-sm text-destructive">
         에러가 발생했습니다.
       </div>
     )
@@ -42,22 +43,18 @@ export default function ReportView() {
     <div className="p-6">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">데일리 리포트</h1>
-          <p className="text-sm text-gray-400">AI가 분석한 투자 종목 리포트</p>
+          <h1 className="text-xl font-semibold text-foreground">데일리 리포트</h1>
+          <p className="text-sm text-muted-foreground">AI가 분석한 투자 종목 리포트</p>
         </div>
-        <button
-          onClick={handleGenerate}
-          disabled={sse.isStreaming}
-          className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
-        >
+        <Button onClick={handleGenerate} disabled={sse.isStreaming}>
           {sse.isStreaming ? '생성 중...' : '🤖 오늘 리포트 생성'}
-        </button>
+        </Button>
       </div>
 
       {sse.isStreaming && (
-        <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+        <div className="mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4">
           {/* 단계 설명 */}
-          <p className="mb-3 text-xs font-semibold text-blue-600">
+          <p className="mb-3 text-xs font-semibold text-primary">
             {progress.phase === 'collect' && '📡 보유 종목 관련 최신 뉴스를 수집하고 있습니다...'}
             {progress.phase === 'embed' &&
               '🧠 수집된 기사를 AI가 투자자 관점으로 요약하고 있습니다...'}
@@ -68,15 +65,15 @@ export default function ReportView() {
           {/* COLLECT 결과 */}
           {progress.collectResults.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1 text-xs text-gray-500">뉴스 수집 현황</p>
+              <p className="mb-1 text-xs text-muted-foreground">뉴스 수집 현황</p>
               <div className="space-y-1">
                 {progress.collectResults.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between border-b border-blue-100 py-1 text-xs text-gray-600"
+                    className="flex items-center justify-between border-b border-primary/20 py-1 text-xs text-muted-foreground"
                   >
-                    <span className="font-medium">{r.stockName}</span>
-                    <span className="text-gray-400">{r.message}</span>
+                    <span className="font-medium text-foreground">{r.stockName}</span>
+                    <span className="text-muted-foreground">{r.message}</span>
                   </div>
                 ))}
               </div>
@@ -86,15 +83,15 @@ export default function ReportView() {
           {/* EMBED 진행률 */}
           {progress.phase === 'embed' && progress.embedTotal > 0 && (
             <div className="mb-3">
-              <div className="mb-1 flex justify-between text-xs text-gray-500">
+              <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                 <span>기사 요약 중</span>
                 <span>
                   {progress.embedCount} / {progress.embedTotal}
                 </span>
               </div>
-              <div className="h-1.5 w-full rounded-full bg-blue-200">
+              <div className="h-1.5 w-full rounded-full bg-primary/20">
                 <div
-                  className="h-1.5 rounded-full bg-blue-500 transition-all"
+                  className="h-1.5 rounded-full bg-primary transition-all"
                   style={{
                     width: `${(progress.embedCount / progress.embedTotal) * 100}%`,
                   }}
@@ -106,21 +103,17 @@ export default function ReportView() {
       )}
 
       {reportList.length === 0 && !sse.isStreaming ? (
-        <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 text-gray-400">
+        <div className="flex h-60 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border text-muted-foreground">
           <span className="text-4xl">📭</span>
           <p className="text-sm">아직 리포트가 없습니다</p>
-          <button
-            onClick={handleGenerate}
-            disabled={sse.isStreaming}
-            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
-          >
+          <Button onClick={handleGenerate} disabled={sse.isStreaming}>
             첫 리포트 생성하기
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="space-y-2 lg:col-span-1">
-            <p className="text-xs font-medium text-gray-400">리포트 목록</p>
+            <p className="text-xs font-medium text-muted-foreground">리포트 목록</p>
             {reportList.map((report) => (
               <ReportCard
                 key={report.id}
@@ -135,7 +128,7 @@ export default function ReportView() {
             {displayReport ? (
               <ReportDetail report={displayReport} />
             ) : (
-              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-gray-200 text-sm text-gray-400">
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
                 리포트를 선택해주세요
               </div>
             )}
