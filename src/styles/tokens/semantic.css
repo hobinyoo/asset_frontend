@@ -1,0 +1,101 @@
+/* ============================================================
+   Layer 2 — Semantic Tokens (의도 표현)
+   Base 토큰만 참조한다. hex/raw 값 직접 작성 금지.
+   shadcn 호환 변수명을 유지하여 기존 컴포넌트가 자동으로 테마를 받는다.
+   ============================================================ */
+
+:root {
+  /* ── shadcn 호환 — 컴포넌트가 이 이름을 자동 참조 ── */
+  --background:           var(--palette-canvas);
+  --foreground:           var(--palette-ink);
+  --card:                 var(--palette-surface-card);
+  --card-foreground:      var(--palette-ink);
+  --popover:              var(--palette-canvas);
+  --popover-foreground:   var(--palette-ink);
+  --primary:              var(--palette-coral);
+  --primary-foreground:   #ffffff;
+  --secondary:            var(--palette-surface-soft);
+  --secondary-foreground: var(--palette-ink);
+  --muted:                var(--palette-surface-soft);
+  --muted-foreground:     var(--palette-muted);
+  --accent:               var(--palette-surface-cream-strong);
+  --accent-foreground:    var(--palette-ink);
+  --destructive:          var(--palette-error);
+  --border:               var(--palette-hairline);
+  --input:                var(--palette-hairline);
+  --ring:                 var(--palette-coral);
+  --radius:               var(--size-radius-md);
+
+  --chart-1: var(--palette-coral);
+  --chart-2: var(--palette-teal);
+  --chart-3: var(--palette-amber);
+  --chart-4: var(--palette-success);
+  --chart-5: var(--palette-warning);
+
+  --sidebar:                    var(--palette-surface-soft);
+  --sidebar-foreground:         var(--palette-ink);
+  --sidebar-primary:            var(--palette-coral);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             var(--palette-surface-card);
+  --sidebar-accent-foreground:  var(--palette-ink);
+  --sidebar-border:             var(--palette-hairline);
+  --sidebar-ring:               var(--palette-coral);
+
+  /* ── Claude 전용 시맨틱 — 커스텀 컴포넌트에서 사용 ── */
+  --canvas:           var(--palette-canvas);
+  --ink:              var(--palette-ink);
+  --body-text:        var(--palette-body);
+  --body-text-strong: var(--palette-body-strong);
+  --muted-text:       var(--palette-muted);
+  --muted-text-soft:  var(--palette-muted-soft);
+  --hairline:         var(--palette-hairline);
+  --hairline-soft:    var(--palette-hairline-soft);
+
+  /* 다크 서피스 (다크모드 배경 아님 — 카드/푸터 전용 dark surface) */
+  --surface-dark:          var(--palette-surface-dark);
+  --surface-dark-elevated: var(--palette-surface-dark-elevated);
+  --on-dark:               var(--palette-on-dark);
+  --on-dark-muted:         var(--palette-on-dark-soft);
+
+  --accent-teal:  var(--palette-teal);
+  --accent-amber: var(--palette-amber);
+  --success:      var(--palette-success);
+  --warning:      var(--palette-warning);
+  --error:        var(--palette-error);
+
+  /* ── 폰트 패밀리 시맨틱 ── */
+  --font-display: var(--font-family-display);
+  --font-sans:    var(--font-family-sans);
+  --font-mono:    var(--font-family-mono);
+}
+
+/* ── 다크모드 — shadcn .dark 클래스 ── */
+.dark {
+  --background:           var(--palette-surface-dark);
+  --foreground:           var(--palette-on-dark);
+  --card:                 var(--palette-surface-dark-elevated);
+  --card-foreground:      var(--palette-on-dark);
+  --popover:              var(--palette-surface-dark-elevated);
+  --popover-foreground:   var(--palette-on-dark);
+  --primary:              var(--palette-coral);
+  --primary-foreground:   #ffffff;
+  --secondary:            var(--palette-surface-dark-soft);
+  --secondary-foreground: var(--palette-on-dark);
+  --muted:                var(--palette-surface-dark-soft);
+  --muted-foreground:     var(--palette-on-dark-soft);
+  --accent:               var(--palette-surface-dark-elevated);
+  --accent-foreground:    var(--palette-on-dark);
+  --destructive:          var(--palette-error);
+  --border:               oklch(1 0 0 / 10%);
+  --input:                oklch(1 0 0 / 15%);
+  --ring:                 var(--palette-coral);
+
+  --sidebar:                    var(--palette-surface-dark-elevated);
+  --sidebar-foreground:         var(--palette-on-dark);
+  --sidebar-primary:            var(--palette-coral);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent:             var(--palette-surface-dark-soft);
+  --sidebar-accent-foreground:  var(--palette-on-dark);
+  --sidebar-border:             oklch(1 0 0 / 10%);
+  --sidebar-ring:               var(--palette-coral);
+}
