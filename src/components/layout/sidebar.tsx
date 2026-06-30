@@ -15,16 +15,22 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
 
   return (
     <>
-      {/* 모바일 오버레이 */}
-      {open && <div className="fixed inset-0 z-30 bg-black/30 lg:hidden" onClick={onClose} />}
+      {open && (
+        <div
+          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
 
-      {/* 사이드바 */}
       <aside
-        className={`fixed top-14 left-0 z-40 flex h-[calc(100%-3.5rem)] w-56 flex-col border-r border-gray-100 bg-white transition-transform duration-200
+        id="sidebar-nav"
+        aria-label="주요 메뉴"
+        className={`fixed left-0 top-14 z-40 flex h-[calc(100%-3.5rem)] w-56 flex-col border-r border-border bg-background transition-transform duration-200
           ${open ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0`}
       >
-        <nav className="flex-1 space-y-1 p-3">
+        <nav aria-label="내비게이션" className="flex-1 space-y-1 p-3">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname.startsWith(item.href)
             return (
@@ -32,23 +38,24 @@ export default function Sidebar({ open, onClose }: { open: boolean; onClose: () 
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-body-sm font-medium transition-colors
                   ${
                     isActive
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                   }`}
               >
-                <span className="text-base">{item.icon}</span>
+                <span aria-hidden="true">{item.icon}</span>
                 {item.label}
               </Link>
             )
           })}
         </nav>
 
-        <div className="border-t border-gray-100 p-4">
-          <p className="text-xs text-gray-400">© 2026 부자되기❤️</p>
-        </div>
+        <footer className="border-t border-border p-4">
+          <p className="text-label text-muted-foreground">© 2026 부자되기❤️</p>
+        </footer>
       </aside>
     </>
   )

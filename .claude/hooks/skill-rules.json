@@ -1,0 +1,278 @@
+{
+  "$schema": "./skill-rules.schema.json",
+  "version": "2.0",
+  "config": {
+    "minConfidenceScore": 3,
+    "showMatchReasons": true,
+    "maxSkillsToShow": 5
+  },
+  "scoring": {
+    "keyword": 2,
+    "keywordPattern": 3,
+    "pathPattern": 4,
+    "directoryMatch": 5,
+    "intentPattern": 4,
+    "contentPattern": 3,
+    "contextPattern": 2
+  },
+  "directoryMappings": {
+    "src/components": "component-design",
+    "src/components/common": "shadcn-ui",
+    "src/components/ui": "shadcn-ui",
+    "src/hooks": "component-design",
+    "src/queries": "react-query",
+    "src/api": "react-query",
+    "src/app": "rendering-strategy",
+    "tests": "playwright-testing",
+    ".github/workflows": "github-actions"
+  },
+  "skills": {
+    "component-design": {
+      "description": "이 프로젝트의 컴포넌트 설계 원칙 및 패턴",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["component", "컴포넌트", "modal", "모달", "분리", "설계", "훅", "hook"],
+        "keywordPatterns": ["\\bcomponent\\b", "\\bmodal\\b"],
+        "pathPatterns": ["**/components/**/*.tsx"],
+        "intentPatterns": [
+          "(?:create|add|만들|작성).*(?:component|컴포넌트|modal|모달)",
+          "(?:분리|refactor|리팩터).*(?:컴포넌트|component)"
+        ]
+      }
+    },
+    "shadcn-ui": {
+      "description": "shadcn/ui 컴포넌트 사용 및 커스터마이징 가이드라인",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["shadcn", "공통 컴포넌트", "css 변수", "테마", "버튼", "다이얼로그"],
+        "keywordPatterns": ["\\bshadcn\\b", "\\bdialog\\b", "\\bbutton\\b"],
+        "pathPatterns": ["**/components/ui/**", "**/components/common/**"],
+        "intentPatterns": [
+          "(?:만들|추가|create|add).*(?:공통|컴포넌트|component|ui)",
+          "(?:스타일|style|색상|color|테마|theme).*(?:변경|수정|바꾸)"
+        ]
+      }
+    },
+    "design-tokens": {
+      "description": "피그마 디자인 가이드를 CSS 변수(디자인 토큰)로 변환하는 방법",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["디자인 토큰", "design token", "피그마", "figma", "폰트 크기", "타이포그래피", "typography", "spacing", "shadow", "그림자"],
+        "keywordPatterns": ["\\btoken\\b", "\\bfigma\\b", "\\btypography\\b"],
+        "pathPatterns": ["**/globals.css"],
+        "intentPatterns": [
+          "(?:피그마|figma).*(?:적용|변환|반영)",
+          "(?:폰트|font|텍스트|text).*(?:크기|size|스타일|style)",
+          "(?:디자인|design).*(?:시스템|system|가이드|guide|토큰|token)"
+        ]
+      }
+    },
+    "tanstack-form": {
+      "description": "TanStack Form + Zod 유효성 검증 패턴",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["validation", "유효성", "zod", "schema", "스키마", "에러메시지", "form"],
+        "keywordPatterns": ["\\bvalidat(?:e|ion)\\b", "\\bzod\\b", "\\bschema\\b"],
+        "pathPatterns": ["**/*modal*.tsx", "**/*form*.tsx"],
+        "intentPatterns": [
+          "(?:추가|add).*(?:유효성|validation|검증)",
+          "(?:form|폼).*(?:검증|validation|에러)"
+        ],
+        "contentPatterns": ["useForm", "zodValidator", "z\\.object", "z\\.string"]
+      }
+    },
+    "react-query": {
+      "description": "React Query(TanStack Query) 데이터 패칭 및 캐시 패턴",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["react query", "usequery", "usemutation", "invalidate", "캐시", "패칭", "stale"],
+        "keywordPatterns": ["\\buseQuery\\b", "\\buseMutation\\b", "\\binvalidate\\b"],
+        "pathPatterns": ["**/queries/**", "**/api/**"],
+        "intentPatterns": [
+          "(?:fetch|get|load|패칭).*(?:data|데이터)",
+          "(?:invalidate|무효화).*(?:query|캐시)",
+          "(?:api|서버).*(?:연동|호출|요청)"
+        ],
+        "contentPatterns": ["useQuery", "useMutation", "queryClient", "invalidateQueries"]
+      }
+    },
+    "rendering-strategy": {
+      "description": "Next.js App Router 렌더링 전략 의사결정. SSR/RSC/Static, prefetch, HydrationBoundary 작업 시 사용.",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["server component", "서버 컴포넌트", "app router", "prefetch", "hydration", "렌더링", "rsc", "ssr", "static"],
+        "keywordPatterns": ["\\buse client\\b", "\\buse server\\b", "\\bHydrationBoundary\\b", "\\bRSC\\b"],
+        "pathPatterns": ["**/app/**/*.tsx", "**/app/**/page.tsx", "**/app/**/layout.tsx"],
+        "intentPatterns": [
+          "(?:server|서버).*(?:component|컴포넌트)",
+          "(?:prefetch|프리패치).*(?:data|데이터)",
+          "(?:렌더링|rendering).*(?:전략|strategy|방식)",
+          "(?:page|페이지|layout|레이아웃).*(?:만들|추가|create)"
+        ]
+      }
+    },
+    "loading-error-handling": {
+      "description": "Next.js + React Query 기준 로딩/에러 처리 패턴. loading.tsx, Suspense, ErrorBoundary 선택 기준.",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["loading", "로딩", "error", "에러", "suspense", "skeleton", "스켈레톤", "errorboundary"],
+        "keywordPatterns": ["\\bSuspense\\b", "\\bErrorBoundary\\b", "\\bisLoading\\b", "\\bisError\\b"],
+        "pathPatterns": ["**/loading.tsx", "**/error.tsx"],
+        "intentPatterns": [
+          "(?:로딩|loading).*(?:처리|UI|상태|스켈레톤)",
+          "(?:에러|error).*(?:처리|UI|fallback)",
+          "(?:suspense|errorboundary).*(?:추가|사용|언제)"
+        ],
+        "contentPatterns": ["useSuspenseQuery", "isLoading", "isError", "ErrorBoundary"]
+      }
+    },
+    "playwright-testing": {
+      "description": "Playwright E2E 테스트 패턴. 테스트 작성, fixture, 인증 상태 관리.",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["playwright", "e2e", "test", "테스트", "fixture", "spec"],
+        "keywordPatterns": ["\\bplaywright\\b", "\\be2e\\b", "\\.spec\\.ts\\b"],
+        "pathPatterns": ["tests/**", "**/*.spec.ts"],
+        "intentPatterns": [
+          "(?:write|add|create|작성).*(?:test|테스트|e2e|spec)",
+          "(?:test|테스트).*(?:flow|scenario|시나리오)"
+        ],
+        "contentPatterns": ["test\\(", "expect\\(", "page\\.", "storageState"]
+      }
+    },
+    "state-management": {
+      "description": "클라이언트/서버 상태 관리 도구 선택 기준 (Zustand, Jotai, Context, React Query)",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["상태관리", "state", "zustand", "context", "전역상태", "클라이언트 상태", "서버 상태"],
+        "keywordPatterns": ["\\bzustand\\b", "\\bcreate\\b.*store"],
+        "pathPatterns": ["**/store/**", "**/atoms/**"],
+        "intentPatterns": [
+          "(?:전역|global).*(?:상태|state)",
+          "(?:상태|state).*(?:관리|management|어디|어떻게)",
+          "(?:zustand|jotai|context).*(?:언제|써야|사용)"
+        ]
+      }
+    },
+    "performance-optimization": {
+      "description": "Next.js 성능 최적화 기법. preload/prefetch, Code Splitting, 이미지/폰트 최적화, lazy load.",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["최적화", "optimization", "preload", "prefetch", "lazy load", "dynamic import", "code splitting", "이미지 최적화", "폰트 최적화"],
+        "keywordPatterns": ["\\bdynamic\\b.*\\bimport\\b", "\\bpreload\\b", "\\bprefetch\\b"],
+        "intentPatterns": [
+          "(?:번들|bundle).*(?:줄|reduce|최적)",
+          "(?:lcp|fcp|ttfb).*(?:개선|improve|줄)",
+          "(?:lazy|지연).*(?:load|로드)",
+          "(?:이미지|image|폰트|font).*(?:최적화|optimize)"
+        ]
+      }
+    },
+    "performance-measurement": {
+      "description": "Next.js 성능 측정. 번들 분석, Web Vitals, TTFB, Lighthouse 측정 방법.",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["성능", "performance", "번들", "bundle", "lighthouse", "lcp", "fcp", "ttfb", "inp", "cls", "web vitals", "느려", "최적화"],
+        "keywordPatterns": ["\\bLCP\\b", "\\bFCP\\b", "\\bTTFB\\b", "\\bINP\\b", "\\bCLS\\b", "\\blighthouse\\b"],
+        "intentPatterns": [
+          "(?:성능|performance).*(?:측정|분석|최적화)",
+          "(?:번들|bundle).*(?:크기|size|분석)",
+          "(?:왜|why).*(?:느려|slow|느린)"
+        ]
+      }
+    },
+    "security": {
+      "description": "프론트엔드 보안 코딩 규칙. XSS, CSRF, 토큰 저장, 환경변수 관리.",
+      "priority": 9,
+      "triggers": {
+        "keywords": ["xss", "csrf", "보안", "security", "토큰", "token", "localstorage", "쿠키", "cookie", "환경변수", "dangerouslysetinnerhtml"],
+        "keywordPatterns": ["\\bXSS\\b", "\\bCSRF\\b", "\\bdangerouslySetInnerHTML\\b", "\\blocalStorage\\b"],
+        "intentPatterns": [
+          "(?:보안|security).*(?:취약|vulnerability|위험)",
+          "(?:토큰|token).*(?:저장|store|보관)",
+          "(?:환경변수|env).*(?:노출|expose|관리)"
+        ],
+        "contentPatterns": ["dangerouslySetInnerHTML", "localStorage\\.setItem", "innerHTML"]
+      }
+    },
+    "systematic-debugging": {
+      "description": "단계적 디버깅 및 근본 원인 분석",
+      "priority": 9,
+      "triggers": {
+        "keywords": ["bug", "버그", "debug", "fix", "error", "에러", "오류", "broken", "안됨"],
+        "keywordPatterns": ["\\bbug\\b", "\\bfix\\b", "\\berror\\b"],
+        "intentPatterns": [
+          "(?:fix|debug|resolve|고쳐).*(?:bug|error|issue|오류)",
+          "(?:왜|why).*(?:안|not working|broken|failing)"
+        ]
+      },
+      "excludePatterns": ["fix typo", "fix formatting", "fix lint"]
+    },
+    "typescript-conventions": {
+      "description": "TypeScript 타입 정의 및 컨벤션",
+      "priority": 5,
+      "triggers": {
+        "keywords": ["typescript", "type", "interface", "generic", "타입"],
+        "keywordPatterns": ["\\btype\\b", "\\binterface\\b", "\\bgeneric\\b"],
+        "pathPatterns": ["**/*.d.ts", "**/types/**", "**/types.ts"],
+        "intentPatterns": [
+          "(?:define|create|정의).*(?:type|interface|타입)",
+          "(?:타입|type).*(?:에러|error|오류)"
+        ],
+        "contentPatterns": ["interface ", "type ", ": unknown", "as const"]
+      }
+    },
+    "web-accessibility": {
+      "description": "Next.js + React 기준 웹 접근성(KWCAG 2.2). 인터랙티브 컴포넌트, 폼, 동적 메시지, 레이아웃 시맨틱 작업 시 사용.",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["접근성", "accessibility", "aria", "wcag", "kwcag", "스크린리더", "screen reader", "키보드", "keyboard", "skip link", "포커스", "focus", "시맨틱", "semantic"],
+        "keywordPatterns": ["\\baria-\\w+", "\\brole=", "\\btabIndex\\b", "\\bsr-only\\b", "\\baria-label\\b", "\\baria-hidden\\b"],
+        "pathPatterns": ["**/layout/**/*.tsx", "**/components/layout/**"],
+        "intentPatterns": [
+          "(?:접근성|accessibility|wcag|kwcag).*(?:적용|추가|준수|검토)",
+          "(?:키보드|keyboard).*(?:접근|navigation|이동|탐색)",
+          "(?:스크린|screen).*(?:리더|reader)",
+          "(?:aria|role|tabindex).*(?:추가|설정|적용)",
+          "(?:시맨틱|semantic).*(?:html|마크업|태그)"
+        ],
+        "contentPatterns": ["aria-label", "aria-hidden", "role=", "tabIndex", "sr-only", "aria-current", "aria-expanded"]
+      }
+    },
+    "github-actions": {
+      "description": "GitHub Actions CI/CD 워크플로우 패턴",
+      "priority": 6,
+      "triggers": {
+        "keywords": ["github action", "workflow", "ci/cd", "cicd", "pipeline"],
+        "keywordPatterns": ["ci/?cd", "\\bworkflow\\b"],
+        "pathPatterns": [".github/workflows/**"],
+        "intentPatterns": [
+          "(?:create|add|update).*(?:workflow|action|pipeline)"
+        ],
+        "contentPatterns": ["runs-on:", "uses:", "steps:"]
+      }
+    },
+    "receiving-code-review": {
+      "description": "코드 리뷰 피드백 처리 방법",
+      "priority": 4,
+      "triggers": {
+        "keywords": ["code review", "코드리뷰", "pr feedback", "review comment"],
+        "keywordPatterns": ["code.review", "pr.feedback"],
+        "intentPatterns": [
+          "(?:respond|address|handle).*(?:review|feedback|comment)"
+        ]
+      }
+    },
+    "verification-before-completion": {
+      "description": "작업 완료 전 검증 체크리스트",
+      "priority": 8,
+      "triggers": {
+        "keywords": ["verify", "check", "confirm", "done", "complete", "finished"],
+        "intentPatterns": [
+          "(?:is it|are we).*(?:done|complete|finished)",
+          "(?:verify|check|confirm).*(?:works|passes)"
+        ]
+      }
+    }
+  }
+}

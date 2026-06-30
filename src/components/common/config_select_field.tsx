@@ -10,9 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-const INPUT_CLASS =
-  'w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 
 interface Props {
   label: string
@@ -49,11 +48,11 @@ export default function ConfigSelectField({
 
   return (
     <div>
-      <p className="mb-1 text-xs font-medium text-gray-500">{label}</p>
+      <p className="mb-1 text-xs font-medium text-muted-foreground">{label}</p>
       {adding ? (
         <div className="flex gap-2">
-          <input
-            className={INPUT_CLASS}
+          <Input
+            className="rounded-lg"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="새 항목 입력"
@@ -65,24 +64,25 @@ export default function ConfigSelectField({
             }}
             autoFocus
           />
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={handleAdd}
             disabled={isPending || !inputValue.trim()}
-            className="shrink-0 rounded-lg bg-blue-500 px-3 text-sm font-medium text-white disabled:opacity-50"
           >
             추가
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="outline"
+            size="sm"
             onClick={() => {
               setAdding(false)
               setInputValue('')
             }}
-            className="shrink-0 rounded-lg border border-gray-200 px-3 text-sm text-gray-600"
           >
             취소
-          </button>
+          </Button>
         </div>
       ) : (
         <>
@@ -100,7 +100,7 @@ export default function ConfigSelectField({
                   {onDelete && item.id && (
                     <button
                       type="button"
-                      className="absolute right-7 top-1/2 z-10 -translate-y-1/2 rounded p-0.5 text-gray-300 hover:text-red-500"
+                      className="absolute right-7 top-1/2 z-10 -translate-y-1/2 rounded p-0.5 text-border hover:text-destructive"
                       // onPointerDown: Radix Select 가 이 클릭을 선택 이벤트로 처리하지 못하게 막음
                       onPointerDown={(e) => {
                         e.preventDefault()
@@ -119,13 +119,15 @@ export default function ConfigSelectField({
               ))}
             </SelectContent>
           </Select>
-          <button
+          <Button
             type="button"
+            variant="link"
+            size="sm"
+            className="mt-0.5 h-auto p-0 text-xs"
             onClick={() => setAdding(true)}
-            className="mt-1 text-xs text-blue-500 hover:underline"
           >
             + 직접 추가
-          </button>
+          </Button>
         </>
       )}
     </div>
