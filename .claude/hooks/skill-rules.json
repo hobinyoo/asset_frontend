@@ -222,6 +222,23 @@
         "contentPatterns": ["interface ", "type ", ": unknown", "as const"]
       }
     },
+    "web-accessibility": {
+      "description": "Next.js + React 기준 웹 접근성(KWCAG 2.2). 인터랙티브 컴포넌트, 폼, 동적 메시지, 레이아웃 시맨틱 작업 시 사용.",
+      "priority": 7,
+      "triggers": {
+        "keywords": ["접근성", "accessibility", "aria", "wcag", "kwcag", "스크린리더", "screen reader", "키보드", "keyboard", "skip link", "포커스", "focus", "시맨틱", "semantic"],
+        "keywordPatterns": ["\\baria-\\w+", "\\brole=", "\\btabIndex\\b", "\\bsr-only\\b", "\\baria-label\\b", "\\baria-hidden\\b"],
+        "pathPatterns": ["**/layout/**/*.tsx", "**/components/layout/**"],
+        "intentPatterns": [
+          "(?:접근성|accessibility|wcag|kwcag).*(?:적용|추가|준수|검토)",
+          "(?:키보드|keyboard).*(?:접근|navigation|이동|탐색)",
+          "(?:스크린|screen).*(?:리더|reader)",
+          "(?:aria|role|tabindex).*(?:추가|설정|적용)",
+          "(?:시맨틱|semantic).*(?:html|마크업|태그)"
+        ],
+        "contentPatterns": ["aria-label", "aria-hidden", "role=", "tabIndex", "sr-only", "aria-current", "aria-expanded"]
+      }
+    },
     "github-actions": {
       "description": "GitHub Actions CI/CD 워크플로우 패턴",
       "priority": 6,

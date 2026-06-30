@@ -210,6 +210,41 @@ export function Button({ variant, size, className, ...props }: ButtonProps) {
 
 ---
 
+## 새 색상이 여러 variant에 필요한 경우 — compoundVariants
+
+단일 축 variant로는 색상이 늘어날수록 조합이 폭발한다. `variant`(스타일) × `color`(색상) 두 축으로 분리하고 `compoundVariants`로 조합한다.
+
+```tsx
+const buttonVariants = cva("...", {
+  variants: {
+    variant: {
+      default: "",   // 채운 버튼
+      outline: "border bg-transparent",
+      ghost:   "bg-transparent",
+    },
+    color: {
+      primary:     "",
+      destructive: "",
+      warning:     "",
+    },
+  },
+  compoundVariants: [
+    { variant: "default", color: "primary",     class: "bg-primary text-primary-foreground active:bg-primary-active" },
+    { variant: "outline", color: "primary",     class: "border-primary text-primary hover:bg-primary/10" },
+    { variant: "ghost",   color: "primary",     class: "text-primary hover:bg-primary/10" },
+
+    { variant: "default", color: "destructive", class: "bg-destructive text-white active:bg-destructive/90" },
+    { variant: "outline", color: "destructive", class: "border-destructive text-destructive hover:bg-destructive/10" },
+    { variant: "ghost",   color: "destructive", class: "text-destructive hover:bg-destructive/10" },
+  ],
+  defaultVariants: { variant: "default", color: "primary" },
+})
+```
+
+새 색상 추가 시: 토큰만 추가하고 `compoundVariants`에 3줄(default/outline/ghost)만 append.
+
+---
+
 ## cn 유틸 (lib/utils.ts)
 
 shadcn 설치 시 자동 생성. 클래스 충돌을 해결한다.
