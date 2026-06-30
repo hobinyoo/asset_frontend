@@ -9,9 +9,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
   return (
     <>
-      <Header onMenuClick={() => setSidebarOpen((v) => !v)} />
+      <Header
+        menuOpen={sidebarOpen}
+        onMenuClick={() => setSidebarOpen((v) => !v)}
+      />
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <main className="min-h-screen pt-14 lg:pl-56">
+      <main id="main-content" tabIndex={-1} className="min-h-screen pt-14 lg:pl-56">
         <div className="mx-auto max-w-7xl">{children}</div>
       </main>
     </>
