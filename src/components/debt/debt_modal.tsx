@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { Debt, DebtCreateRequest, DebtType, DebtUpdateRequest } from '@/types/debt'
+import { DEBT_TYPE_OPTIONS } from '@/constants/debt_type'
 import { usePostDebt, usePutDebt } from '@/queries/debt'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import OwnerSelect from '@/components/common/owner_select'
@@ -19,12 +20,6 @@ const EMPTY_FORM: DebtCreateRequest = {
   purpose: '',
   note: '',
 }
-
-const DEBT_TYPE_OPTIONS: { value: DebtType; label: string }[] = [
-  { value: 'FIXED', label: '거치' },
-  { value: 'REGULAR', label: '정기' },
-  { value: 'VARIABLE', label: '변동' },
-]
 
 const DebtModal = ({ debt, onClose }: { debt?: Debt; onClose: () => void }) => {
   const isEdit = !!debt

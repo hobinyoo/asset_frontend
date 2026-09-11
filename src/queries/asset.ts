@@ -24,6 +24,18 @@ export const ASSET_KEYS = {
   dashboardChart: () => [...ASSET_KEYS.all, 'dashboardChart'] as const,
 }
 
+/**
+ * 자산 변경(등록/수정/삭제)이 투자 계좌에 영향을 줄 수 있을 때 함께 무효화한다.
+ * (investment 쪽 invalidateInvestmentAndAccount 의 반대 방향 — 순환 import 피하려고
+ * 쿼리키 리터럴을 그대로 씀. queries/investment.ts 의 INVESTMENT_KEYS.all /
+ * INVESTMENT_ACCOUNT_KEYS.all / dashboardSummary·Chart 의 루트 키와 동일해야 함)
+ */
+const invalidateInvestmentQueries = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: ['investments'] })
+  queryClient.invalidateQueries({ queryKey: ['investment-account'] })
+  queryClient.invalidateQueries({ queryKey: ['investment-dashboard'] })
+}
+
 export const useGetAssets = (page = 0, size = 10) =>
   useQuery({
     queryKey: ASSET_KEYS.list(page),
@@ -41,7 +53,9 @@ export const usePostAsset = () => {
   return useMutation({
     mutationFn: (body: AssetCreateRequest) => postAsset(body),
     onSuccess: () => {
+      // 투자연동으로 등록하면 서버에서 InvestmentAccount 가 같이 생성됨
       queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      invalidateInvestmentQueries(queryClient)
     },
   })
 }
@@ -51,7 +65,9 @@ export const usePutAsset = (id: number) => {
   return useMutation({
     mutationFn: (body: AssetUpdateRequest) => putAsset(id, body),
     onSuccess: () => {
+      // 투자연동 자산의 카테고리(계좌명) 변경이 투자 카드에도 표시되므로 같이 무효화
       queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      invalidateInvestmentQueries(queryClient)
     },
   })
 }
@@ -61,7 +77,9 @@ export const useDeleteAsset = () => {
   return useMutation({
     mutationFn: (id: number) => deleteAsset(id),
     onSuccess: () => {
+      // 투자연동 자산 삭제 시 서버에서 InvestmentAccount·종목도 같이 삭제됨
       queryClient.invalidateQueries({ queryKey: ASSET_KEYS.all })
+      invalidateInvestmentQueries(queryClient)
     },
   })
 }

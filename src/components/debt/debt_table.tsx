@@ -2,25 +2,13 @@
 
 import { useState } from 'react'
 import { useDeleteDebt, useGetDebts, useGetDebtsSummary } from '@/queries/debt'
-import { formatAmount } from '@/utils/format'
-import type { Debt, DebtType } from '@/types/debt'
+import { formatAmount, formatDebtType } from '@/utils/format'
+import { DEBT_TYPE_META } from '@/constants/debt_type'
+import type { Debt } from '@/types/debt'
 import DebtModal from '@/components/debt/debt_modal'
 import TablePagination from '@/components/common/table_pagination'
 import { Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-
-const DEBT_TYPE_LABEL: Record<DebtType, string> = {
-  FIXED: '거치',
-  REGULAR: '정기',
-  VARIABLE: '변동',
-}
-
-// 데이터 시각화용 카테고리 색상 — 디자인 토큰 아님, 유지
-const DEBT_TYPE_COLOR: Record<DebtType, string> = {
-  FIXED: 'bg-orange-50 text-orange-600',
-  REGULAR: 'bg-blue-50 text-blue-600',
-  VARIABLE: 'bg-purple-50 text-purple-600',
-}
 
 const PAGE_SIZE = 10
 
@@ -111,9 +99,9 @@ export default function DebtTable() {
                     <p className="mt-0.5 text-xs text-muted-foreground">{debt.owner}</p>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${DEBT_TYPE_COLOR[debt.type]}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${DEBT_TYPE_META[debt.type].badgeClass}`}
                   >
-                    {DEBT_TYPE_LABEL[debt.type]}
+                    {formatDebtType(debt.type)}
                   </span>
                 </div>
                 <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
@@ -181,9 +169,9 @@ export default function DebtTable() {
                       <td className="px-4 py-3 text-muted-foreground">{debt.owner}</td>
                       <td className="px-4 py-3">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${DEBT_TYPE_COLOR[debt.type]}`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium ${DEBT_TYPE_META[debt.type].badgeClass}`}
                         >
-                          {DEBT_TYPE_LABEL[debt.type]}
+                          {formatDebtType(debt.type)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-destructive">

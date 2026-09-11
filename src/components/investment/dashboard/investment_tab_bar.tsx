@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 const TABS = [
   { label: '전체 요약', href: '/investments' },
-  { label: '투자 구성', href: '/investments/table' },
+  { label: '투자 구성', href: '/investments/accounts' },
 ]
 
 export default function InvestmentTabBar() {

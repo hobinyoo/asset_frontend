@@ -12,17 +12,11 @@ import {
   useDeleteAssetOwner,
 } from '@/queries/config'
 import type { Asset, AssetCreateRequest, AssetUpdateRequest, AssetType } from '@/types/asset'
+import { ASSET_TYPE_OPTIONS } from '@/constants/asset_type'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import ConfigSelectField from '@/components/common/config_select_field'
 import { FormField, FormInput, FormSelect, FormTextarea } from '@/components/common/form_field'
 import ModalActions from '@/components/common/modal_actions'
-
-const ASSET_TYPE_OPTIONS: { value: AssetType; label: string }[] = [
-  { value: 'HOUSING', label: '주택자금' },
-  { value: 'SAVINGS', label: '청약·공제' },
-  { value: 'RETIREMENT', label: '노후 자산 (IRP·연금·DC)' },
-  { value: 'INVESTMENT', label: '투자 (주식·ISA·토스)' },
-]
 
 export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose: () => void }) {
   const isEdit = !!asset
@@ -46,7 +40,9 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
       owner: isEdit ? asset.owner : '',
       amount: isEdit ? asset.amount : 0,
       type: isEdit ? asset.type : ('HOUSING' as AssetType),
-      monthlyPayment: isEdit ? (asset.monthlyPayment ?? undefined) : (undefined as number | undefined),
+      monthlyPayment: isEdit
+        ? (asset.monthlyPayment ?? undefined)
+        : (undefined as number | undefined),
       paymentDay: isEdit ? (asset.paymentDay ?? undefined) : (undefined as number | undefined),
       note: isEdit ? (asset.note ?? '') : '',
       linkedToInvestment: isEdit ? asset.linkedToInvestment : false,
@@ -64,6 +60,15 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
   const handleMonthlyPaymentToggle = (has: boolean) => {
     setHasMonthlyPayment(has)
     if (!has) {
+      form.setFieldValue('monthlyPayment', undefined)
+      form.setFieldValue('paymentDay', undefined)
+    }
+  }
+
+  const handleLinkedToggle = (linked: boolean) => {
+    // 투자 연동 자산은 월 납입금이 예수금으로 들어가 헷갈리므로 UI에서 아예 숨기고 값도 비운다
+    if (linked) {
+      setHasMonthlyPayment(false)
       form.setFieldValue('monthlyPayment', undefined)
       form.setFieldValue('paymentDay', undefined)
     }
@@ -137,91 +142,118 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
               )}
             />
 
-            <form.Field
-              name="amount"
-              children={(field) => (
-                <FormField label="금액 (원)">
-                  <FormInput
-                    type="number"
-                    value={field.state.value || ''}
-                    onChange={(e) => field.handleChange(Number(e.target.value))}
-                    placeholder="0"
-                  />
-                </FormField>
-              )}
-            />
-
-            {/* 월납입금 라디오 */}
-            <div>
-              <p className="mb-2 text-xs font-medium text-gray-500">월 납입금</p>
-              <div className="flex gap-4">
-                <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
-                  <input
-                    type="radio"
-                    name="monthlyPayment"
-                    checked={!hasMonthlyPayment}
-                    onChange={() => handleMonthlyPaymentToggle(false)}
-                    className="h-4 w-4"
-                  />
-                  없음
-                </label>
-                <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
-                  <input
-                    type="radio"
-                    name="monthlyPayment"
-                    checked={hasMonthlyPayment}
-                    onChange={() => handleMonthlyPaymentToggle(true)}
-                    className="h-4 w-4"
-                  />
-                  있음
-                </label>
-              </div>
-            </div>
-
-            {hasMonthlyPayment && (
-              <>
+            <form.Subscribe selector={(state) => state.values.linkedToInvestment}>
+              {(linked) => (
                 <form.Field
-                  name="monthlyPayment"
+                  name="amount"
                   children={(field) => (
-                    <FormField label="월 납입금 (원)">
+                    <FormField label={linked && !isEdit ? '초기 예수금 (원)' : '금액 (원)'}>
                       <FormInput
                         type="number"
                         value={field.state.value || ''}
-                        onChange={(e) =>
-                          field.handleChange(e.target.value ? Number(e.target.value) : undefined)
-                        }
+                        onChange={(e) => field.handleChange(Number(e.target.value))}
                         placeholder="0"
+                        disabled={isEdit && !!asset?.linkedToInvestment}
                       />
+                      {linked && !isEdit && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          입력한 금액이 투자 계좌의 초기 예수금이 됩니다. 이후 금액은 예수금 +
+                          보유주식 평가액으로 자동 계산됩니다.
+                        </p>
+                      )}
+                      {isEdit && !!asset?.linkedToInvestment && (
+                        <p className="mt-1 text-xs text-gray-500">
+                          투자 연동 자산의 금액은 (예수금 + 주식 평가액) 파생값이라 직접 수정할 수
+                          없습니다. 예수금은 투자 화면에서 입·출금하세요.
+                        </p>
+                      )}
                     </FormField>
                   )}
                 />
+              )}
+            </form.Subscribe>
 
-                <form.Field
-                  name="paymentDay"
-                  children={(field) => (
-                    <FormField label="월 납입일">
-                      <div className="relative">
-                        <FormInput
-                          type="number"
-                          min={1}
-                          max={31}
-                          value={field.state.value ?? ''}
-                          onChange={(e) => {
-                            const val = Number(e.target.value)
-                            field.handleChange(val >= 1 && val <= 31 ? val : undefined)
-                          }}
-                          placeholder="예) 25 (매달 25일)"
-                          className="pr-8"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                          일
-                        </span>
+            {/* 월납입금 — 투자 연동 자산은 월 납입금이 예수금으로 처리되므로 숨김 */}
+            <form.Subscribe selector={(state) => state.values.linkedToInvestment}>
+              {(linked) =>
+                !linked && (
+                  <>
+                    <div>
+                      <p className="mb-2 text-xs font-medium text-gray-500">월 납입금</p>
+                      <div className="flex gap-4">
+                        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
+                          <input
+                            type="radio"
+                            name="monthlyPayment"
+                            checked={!hasMonthlyPayment}
+                            onChange={() => handleMonthlyPaymentToggle(false)}
+                            className="h-4 w-4"
+                          />
+                          없음
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-1.5 text-sm text-gray-600">
+                          <input
+                            type="radio"
+                            name="monthlyPayment"
+                            checked={hasMonthlyPayment}
+                            onChange={() => handleMonthlyPaymentToggle(true)}
+                            className="h-4 w-4"
+                          />
+                          있음
+                        </label>
                       </div>
-                    </FormField>
-                  )}
-                />
-              </>
-            )}
+                    </div>
+
+                    {hasMonthlyPayment && (
+                      <>
+                        <form.Field
+                          name="monthlyPayment"
+                          children={(field) => (
+                            <FormField label="월 납입금 (원)">
+                              <FormInput
+                                type="number"
+                                value={field.state.value || ''}
+                                onChange={(e) =>
+                                  field.handleChange(
+                                    e.target.value ? Number(e.target.value) : undefined,
+                                  )
+                                }
+                                placeholder="0"
+                              />
+                            </FormField>
+                          )}
+                        />
+
+                        <form.Field
+                          name="paymentDay"
+                          children={(field) => (
+                            <FormField label="월 납입일">
+                              <div className="relative">
+                                <FormInput
+                                  type="number"
+                                  min={1}
+                                  max={31}
+                                  value={field.state.value ?? ''}
+                                  onChange={(e) => {
+                                    const val = Number(e.target.value)
+                                    field.handleChange(val >= 1 && val <= 31 ? val : undefined)
+                                  }}
+                                  placeholder="예) 25 (매달 25일)"
+                                  className="pr-8"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                                  일
+                                </span>
+                              </div>
+                            </FormField>
+                          )}
+                        />
+                      </>
+                    )}
+                  </>
+                )
+              }
+            </form.Subscribe>
 
             <form.Field
               name="note"
@@ -245,11 +277,18 @@ export default function AssetModal({ asset, onClose }: { asset?: Asset; onClose:
                     type="checkbox"
                     id="linked"
                     checked={field.state.value ?? false}
-                    onChange={(e) => field.handleChange(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-300"
+                    onChange={(e) => {
+                      field.handleChange(e.target.checked)
+                      handleLinkedToggle(e.target.checked)
+                    }}
+                    disabled={isEdit}
+                    className="h-4 w-4 rounded border-gray-300 disabled:opacity-50"
                   />
                   <label htmlFor="linked" className="text-sm text-gray-600">
                     투자 연동
+                    {isEdit && (
+                      <span className="ml-1 text-xs text-gray-400">(등록 후 변경 불가)</span>
+                    )}
                   </label>
                 </div>
               )}

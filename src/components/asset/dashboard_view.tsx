@@ -1,62 +1,11 @@
 'use client'
 
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { useGetDashboardSummary, useGetDashboardChart } from '@/queries/asset'
-import { DashboardChartItem } from '@/types/asset'
+import { ASSET_TYPE_META } from '@/constants/asset_type'
+import { formatCompactAmount } from '@/utils/format'
 import SnapshotChart from '@/components/asset/snapshot_chart'
-
-const TYPE_COLORS: Record<string, string> = {
-  HOUSING: '#3b82f6',
-  SAVINGS: '#f97316',
-  RETIREMENT: '#22c55e',
-  INVESTMENT: '#06b6d4',
-}
-
-const TYPE_LABELS: Record<string, string> = {
-  HOUSING: '주택자금',
-  SAVINGS: '청약·공제',
-  RETIREMENT: '노후 자산 (IRP·연금·DC)',
-  INVESTMENT: '투자 (주식·ISA·토스)',
-}
-
-function formatAmount(value: number) {
-  if (value >= 100000000) {
-    const uk = Math.floor(value / 100000000)
-    const man = Math.floor((value % 100000000) / 10000)
-    return man > 0 ? `${uk}억 ${man.toLocaleString()}만` : `${uk}억`
-  }
-  return `${Math.floor(value / 10000).toLocaleString()}만`
-}
-
-const CustomTooltip = ({
-  active,
-  payload,
-}: {
-  active?: boolean
-  payload?: { payload: DashboardChartItem }[]
-}) => {
-  if (active && payload && payload.length) {
-    const item: DashboardChartItem = payload[0].payload
-    return (
-      <div className="rounded-lg border border-gray-100 bg-white px-4 py-3 shadow-lg">
-        <p className="text-xs font-medium text-gray-500">{TYPE_LABELS[item.type]}</p>
-        <p className="mt-0.5 text-sm font-bold text-gray-900">{item.percentage}%</p>
-        <p className="text-xs text-gray-500">{formatAmount(item.amount)}원</p>
-      </div>
-    )
-  }
-  return null
-}
+import AssetTypeTooltip from '@/components/asset/asset_type_tooltip'
 
 export default function DashboardView() {
   const { data: summary } = useGetDashboardSummary()
@@ -99,7 +48,7 @@ export default function DashboardView() {
           <div key={i} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <p className="text-xs font-medium text-gray-500">{card.label}</p>
             <p className="mt-2 text-xl font-bold text-gray-900">
-              {formatAmount(card.value)}
+              {formatCompactAmount(card.value)}
               <span className="text-sm font-normal text-gray-500">원</span>
             </p>
             <p className="mt-1 text-xs text-gray-400">{card.sub}</p>
@@ -122,10 +71,10 @@ export default function DashboardView() {
               <div key={item.type} className="flex items-center gap-1.5">
                 <span
                   className="inline-block h-3 w-3 rounded-sm"
-                  style={{ backgroundColor: TYPE_COLORS[item.type] }}
+                  style={{ backgroundColor: ASSET_TYPE_META[item.type].color }}
                 />
                 <span className="text-xs text-gray-600">
-                  {TYPE_LABELS[item.type]} {item.percentage}%
+                  {ASSET_TYPE_META[item.type].description} {item.percentage}%
                 </span>
               </div>
             ))}
@@ -143,10 +92,10 @@ export default function DashboardView() {
                 dataKey="amount"
               >
                 {chartItems.map((item) => (
-                  <Cell key={item.type} fill={TYPE_COLORS[item.type]} />
+                  <Cell key={item.type} fill={ASSET_TYPE_META[item.type].color} />
                 ))}
               </Pie>
-              <Tooltip content={<CustomTooltip />} />
+              <Tooltip content={<AssetTypeTooltip />} />
             </PieChart>
           </ResponsiveContainer>
         </div>
@@ -161,13 +110,13 @@ export default function DashboardView() {
                   <div className="flex items-center gap-2">
                     <span
                       className="inline-block h-2.5 w-2.5 rounded-full"
-                      style={{ backgroundColor: TYPE_COLORS[item.type] }}
+                      style={{ backgroundColor: ASSET_TYPE_META[item.type].color }}
                     />
-                    <span className="text-xs text-gray-600">{TYPE_LABELS[item.type]}</span>
+                    <span className="text-xs text-gray-600">{ASSET_TYPE_META[item.type].description}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-medium text-gray-700">
-                      {formatAmount(item.amount)}만
+                      {formatCompactAmount(item.amount)}
                     </span>
                     <span className="w-10 text-right text-xs text-gray-400">
                       {item.percentage}%
@@ -179,7 +128,7 @@ export default function DashboardView() {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${item.percentage}%`,
-                      backgroundColor: TYPE_COLORS[item.type],
+                      backgroundColor: ASSET_TYPE_META[item.type].color,
                     }}
                   />
                 </div>

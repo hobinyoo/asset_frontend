@@ -6,17 +6,15 @@ import type {
   InvestmentDashboardSummaryResponse,
   InvestmentDashboardChartResponse,
   InvestmentDashboardPeriod,
+  InvestmentTradeRequest,
+  InvestmentTradeResponse,
+  StockQuote,
+  StockSearchItem,
+  MarketType,
 } from '@/types/investment'
-import type { Paging } from '@/types/response'
-
-export const getInvestments = async (params?: {
-  owner?: string
-  assetId?: number
-  category?: string
-  page?: number
-  size?: number
-}): Promise<Paging<Investment[]>> => {
-  const { data } = await api.get('/api/investments', { params })
+/** 특정 계좌(자산)의 종목 전체 — 페이징 없음 */
+export const getInvestmentsByAsset = async (assetId: number): Promise<Investment[]> => {
+  const { data } = await api.get(`/api/investments/asset/${assetId}`)
   return data.data
 }
 
@@ -33,8 +31,33 @@ export const putInvestment = async (
   return data.data
 }
 
-export const deleteInvestment = async (id: number): Promise<void> => {
-  await api.delete(`/api/investments/${id}`)
+export const buyMoreInvestment = async (
+  id: number,
+  body: InvestmentTradeRequest,
+): Promise<InvestmentTradeResponse> => {
+  const { data } = await api.post(`/api/investments/${id}/buy`, body)
+  return data.data
+}
+
+export const sellInvestment = async (
+  id: number,
+  body: InvestmentTradeRequest,
+): Promise<InvestmentTradeResponse> => {
+  const { data } = await api.post(`/api/investments/${id}/sell`, body)
+  return data.data
+}
+
+export const getStockQuote = async (
+  ticker: string,
+  marketType: MarketType,
+): Promise<StockQuote> => {
+  const { data } = await api.get('/api/investments/quote', { params: { ticker, marketType } })
+  return data.data
+}
+
+export const searchStocks = async (q: string): Promise<StockSearchItem[]> => {
+  const { data } = await api.get('/api/investments/search', { params: { q } })
+  return data.data
 }
 
 export const getInvestmentDashboardSummary =

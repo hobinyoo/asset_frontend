@@ -10,6 +10,7 @@ import {
   useSyncAsset,
 } from '@/queries/asset'
 import { formatAmount, formatAssetType } from '@/utils/format'
+import { ASSET_TYPE_META } from '@/constants/asset_type'
 import type { Asset } from '@/types/asset'
 import { ChevronDown, ChevronUp, Pencil, RefreshCw, Trash2 } from 'lucide-react'
 import AssetModal from '@/components/asset/asset_modal'
@@ -17,14 +18,6 @@ import TablePagination from '@/components/common/table_pagination'
 import { Button } from '@/components/ui/button'
 
 const PAGE_SIZE = 10
-
-// 데이터 시각화용 카테고리 색상 — 디자인 토큰 아님, 유지
-const TYPE_STYLE: Record<string, string> = {
-  HOUSING: 'bg-blue-50 text-blue-600',
-  SAVINGS: 'bg-orange-50 text-orange-600',
-  RETIREMENT: 'bg-green-50 text-green-600',
-  INVESTMENT: 'bg-cyan-50 text-cyan-600',
-}
 
 export default function AssetTable() {
   const [page, setPage] = useState(0)
@@ -84,7 +77,7 @@ export default function AssetTable() {
       header: '유형',
       cell: ({ row }) => (
         <span
-          className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[row.original.type] ?? 'bg-muted text-muted-foreground'}`}
+          className={`rounded-full px-2 py-0.5 text-xs font-medium ${ASSET_TYPE_META[row.original.type]?.badgeClass ?? 'bg-muted text-muted-foreground'}`}
         >
           {formatAssetType(row.original.type)}
         </span>
@@ -236,7 +229,7 @@ export default function AssetTable() {
                     <p className="mt-0.5 text-xs text-muted-foreground">{asset.owner}</p>
                   </div>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${TYPE_STYLE[asset.type] ?? 'bg-muted text-muted-foreground'}`}
+                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${ASSET_TYPE_META[asset.type]?.badgeClass ?? 'bg-muted text-muted-foreground'}`}
                   >
                     {formatAssetType(asset.type)}
                   </span>
