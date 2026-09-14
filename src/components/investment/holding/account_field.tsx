@@ -20,7 +20,13 @@ export default function AccountField({
   account,
 }: AccountFieldProps) {
   return (
-    <FormField label="계좌">
+    <FormField
+      label={
+        <>
+          계좌 <span className="text-destructive">*</span>
+        </>
+      }
+    >
       {presetAsset ? (
         <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground">
           {presetAsset.category} ({presetAsset.owner})

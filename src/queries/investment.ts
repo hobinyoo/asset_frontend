@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   buyMoreInvestment,
+  getAllInvestments,
   getInvestmentsByAsset,
   getInvestmentDashboardSummary,
   getInvestmentDashboardChart,
@@ -21,6 +22,7 @@ import type {
 
 export const INVESTMENT_KEYS = {
   all: ['investments'] as const,
+  list: () => [...INVESTMENT_KEYS.all, 'list'] as const,
   byAsset: (assetId: number) => [...INVESTMENT_KEYS.all, 'by-asset', assetId] as const,
   dashboardSummary: () => ['investment-dashboard', 'summary'] as const,
   dashboardChart: (period: InvestmentDashboardPeriod) =>
@@ -67,6 +69,17 @@ export const useInvestmentsByAsset = (assetId: number | undefined) =>
     queryKey: INVESTMENT_KEYS.byAsset(assetId ?? 0),
     queryFn: () => getInvestmentsByAsset(assetId as number),
     enabled: !!assetId,
+    refetchInterval: 30_000,
+  })
+
+/**
+ * 전체 계좌 통틀어 보유 종목 전체 — 투자상세 테이블.
+ * 현재가/등락률이 시세에 따라 매번 새로 계산되므로 30초 폴링 (탭이 백그라운드면 자동으로 멈춤).
+ */
+export const useAllInvestments = () =>
+  useQuery({
+    queryKey: INVESTMENT_KEYS.list(),
+    queryFn: getAllInvestments,
     refetchInterval: 30_000,
   })
 

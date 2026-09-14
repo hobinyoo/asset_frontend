@@ -2,13 +2,7 @@
 
 import { useState } from 'react'
 import { flexRender, getCoreRowModel, useReactTable, type ColumnDef } from '@tanstack/react-table'
-import {
-  useDeleteAsset,
-  useGetAssets,
-  useReorderAsset,
-  useSyncAllAssets,
-  useSyncAsset,
-} from '@/queries/asset'
+import { useDeleteAsset, useGetAssets, useReorderAsset, useSyncAsset } from '@/queries/asset'
 import { formatAmount, formatAssetType } from '@/utils/format'
 import { ASSET_TYPE_META } from '@/constants/asset_type'
 import type { Asset } from '@/types/asset'
@@ -25,7 +19,6 @@ export default function AssetTable() {
 
   const deleteAsset = useDeleteAsset()
   const syncAsset = useSyncAsset()
-  const syncAllAssets = useSyncAllAssets()
   const reorderAsset = useReorderAsset()
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -201,14 +194,6 @@ export default function AssetTable() {
           <p className="text-sm text-muted-foreground">총 {totalElements}개</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => syncAllAssets.mutate()}
-            disabled={syncAllAssets.isPending}
-          >
-            <RefreshCw size={14} className={syncAllAssets.isPending ? 'animate-spin' : ''} />
-            동기화
-          </Button>
           <Button onClick={() => setModalOpen(true)}>+ 자산 등록</Button>
         </div>
       </div>

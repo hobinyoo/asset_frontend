@@ -25,9 +25,6 @@ import { FormField, FormInput } from '@/components/common/form_field'
 import ModalActions from '@/components/common/modal_actions'
 import StockSearchField from '@/components/investment/holding/stock_search_field'
 import AccountField from '@/components/investment/holding/account_field'
-import MarketTickerField, {
-  type DomesticMarket,
-} from '@/components/investment/holding/market_ticker_field'
 
 const EMPTY_FORM: InvestmentCreateRequest = {
   assetId: undefined,
@@ -39,11 +36,6 @@ const EMPTY_FORM: InvestmentCreateRequest = {
   quantity: undefined,
   purchaseAmount: undefined,
   marketType: 'DOMESTIC',
-}
-
-const buildTicker = (input: string, mkt: MarketType, dmkt: DomesticMarket) => {
-  if (!input) return ''
-  return mkt === 'DOMESTIC' ? `${input}.${dmkt}` : input
 }
 
 const InvestmentModal = ({
@@ -64,12 +56,7 @@ const InvestmentModal = ({
   const deleteInvestmentCategory = useDeleteInvestmentCategory()
 
   const initMarket: MarketType = isEdit ? investment.marketType : 'DOMESTIC'
-  const initDomesticMarket: DomesticMarket = investment?.ticker?.endsWith('.KQ') ? 'KQ' : 'KS'
-  const initTicker = investment?.ticker?.replace('.KS', '').replace('.KQ', '') ?? ''
-
   const [market, setMarket] = useState<MarketType>(initMarket)
-  const [domesticMarket, setDomesticMarket] = useState<DomesticMarket>(initDomesticMarket)
-  const [tickerInput, setTickerInput] = useState(isEdit ? initTicker : '')
 
   const [form, setForm] = useState<InvestmentCreateRequest>(
     isEdit
@@ -126,31 +113,8 @@ const InvestmentModal = ({
     setForm({ ...form, assetId: selected?.id })
   }
 
-  const handleMarketChange = (newMarket: MarketType) => {
-    setMarket(newMarket)
-    const ticker = buildTicker(tickerInput, newMarket, domesticMarket)
-    setForm({ ...form, ticker, marketType: newMarket })
-  }
-
-  const handleDomesticMarketChange = (newDmkt: DomesticMarket) => {
-    setDomesticMarket(newDmkt)
-    const ticker = buildTicker(tickerInput, market, newDmkt)
-    setForm({ ...form, ticker })
-  }
-
-  const handleTickerChange = (value: string) => {
-    setTickerInput(value)
-    const ticker = buildTicker(value, market, domesticMarket)
-    setForm({ ...form, ticker })
-  }
-
   const handleStockSelect = (item: StockSearchItem) => {
-    const dmkt: DomesticMarket = item.exchange === 'KOSDAQ' ? 'KQ' : 'KS'
-    const bare =
-      item.marketType === 'DOMESTIC' ? item.symbol.replace(/\.(KS|KQ)$/, '') : item.symbol
     setMarket(item.marketType)
-    setDomesticMarket(dmkt)
-    setTickerInput(bare)
     setForm((f) => ({
       ...f,
       stockName: item.name,
@@ -203,17 +167,12 @@ const InvestmentModal = ({
             onSelect={handleStockSelect}
           />
 
-          <MarketTickerField
-            market={market}
-            domesticMarket={domesticMarket}
-            tickerInput={tickerInput}
-            onMarketChange={handleMarketChange}
-            onDomesticMarketChange={handleDomesticMarketChange}
-            onTickerChange={handleTickerChange}
-          />
-
           <ConfigSelectField
-            label="카테고리"
+            label={
+              <>
+                카테고리 <span className="text-destructive">*</span>
+              </>
+            }
             value={form.category}
             onChange={(value) => setForm({ ...form, category: value })}
             items={investmentCategories}
@@ -225,7 +184,13 @@ const InvestmentModal = ({
 
           {!isEdit && (
             <>
-              <FormField label="수량 (필수)">
+              <FormField
+                label={
+                  <>
+                    수량 <span className="text-destructive">*</span>
+                  </>
+                }
+              >
                 <FormInput
                   type="number"
                   value={form.quantity ?? ''}
@@ -242,7 +207,7 @@ const InvestmentModal = ({
               <FormField
                 label={
                   <>
-                    매수단가 (필수)
+                    매수단가 <span className="text-destructive">*</span>
                     {usingQuotePrice && (
                       <span className="ml-1.5 rounded-full bg-green-100 px-1.5 py-0.5 text-xs text-green-600">
                         현재가 반영
@@ -292,7 +257,11 @@ const InvestmentModal = ({
                         자동계산
                       </span>
                     ) : (
-                      <span className="ml-1 text-gray-400">(단가×수량 없을 때 직접 입력, 필수)</span>
+                      <>
+                        {' '}
+                        <span className="text-destructive">*</span>
+                        <span className="ml-1 text-gray-400">(단가×수량 없을 때 직접 입력)</span>
+                      </>
                     )}
                   </>
                 }

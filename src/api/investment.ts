@@ -18,6 +18,12 @@ export const getInvestmentsByAsset = async (assetId: number): Promise<Investment
   return data.data
 }
 
+/** 전체 계좌 통틀어 보유 종목 전체 — 투자상세 테이블용, 페이징 없이 한 번에 */
+export const getAllInvestments = async (): Promise<Investment[]> => {
+  const { data } = await api.get('/api/investments', { params: { size: 1000 } })
+  return data.data.content
+}
+
 export const postInvestment = async (body: InvestmentCreateRequest): Promise<Investment> => {
   const { data } = await api.post('/api/investments', body)
   return data.data

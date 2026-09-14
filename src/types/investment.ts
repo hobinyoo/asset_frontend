@@ -16,6 +16,7 @@ export interface Investment {
   currentPrice: number | null
   evaluationAmount: number | null
   profitRate: number | null
+  changeRate: number | null
   createdAt: string
   updatedAt: string
   marketType: MarketType

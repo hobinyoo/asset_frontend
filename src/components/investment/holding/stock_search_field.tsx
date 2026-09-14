@@ -65,7 +65,13 @@ export default function StockSearchField({ value, onChange, onSelect }: Props) {
   }
 
   return (
-    <FormField label="종목명">
+    <FormField
+      label={
+        <>
+          종목명 <span className="text-destructive">*</span>
+        </>
+      }
+    >
       <div className="relative">
         <FormInput
           role="combobox"

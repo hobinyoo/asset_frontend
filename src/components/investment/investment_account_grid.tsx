@@ -92,10 +92,7 @@ export default function InvestmentAccountGrid() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-foreground">투자 구성</h1>
-        <p className="text-sm text-muted-foreground">
-          계좌별 카드 · 드래그로 순서 변경 · 카드를 눌러 보유 종목 확인
-        </p>
+        <h1 className="text-xl font-semibold text-foreground">계좌 정보</h1>
       </div>
 
       {owners.length > 1 && (

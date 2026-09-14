@@ -5,27 +5,33 @@ import Link from 'next/link'
 
 const TABS = [
   { label: '전체 요약', href: '/investments' },
-  { label: '투자 구성', href: '/investments/accounts' },
+  { label: '계좌 정보', href: '/investments/accounts' },
+  { label: '투자상세', href: '/investments/detail' },
 ]
 
 export default function InvestmentTabBar() {
   const pathname = usePathname()
 
   return (
-    <div className="mb-4 flex gap-2 border-b">
-      {TABS.map((tab) => (
-        <Link
-          key={tab.href}
-          href={tab.href}
-          className={`px-4 py-2 text-sm font-medium ${
-            pathname === tab.href
-              ? 'border-b-2 border-primary text-primary'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          {tab.label}
-        </Link>
-      ))}
+    <div className="mb-4 flex items-center justify-between border-b">
+      <div className="flex gap-2">
+        {TABS.map((tab) => (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className={`px-4 py-2 text-sm font-medium ${
+              pathname === tab.href
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {tab.label}
+          </Link>
+        ))}
+      </div>
+      <span className="hidden pb-2 text-xs text-muted-foreground sm:inline">
+        30초마다 현재가를 반영해 자동으로 갱신돼요
+      </span>
     </div>
   )
 }

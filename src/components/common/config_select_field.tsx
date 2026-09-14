@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 interface Props {
-  label: string
+  label: React.ReactNode
   value: string
   onChange: (value: string) => void
   items: ConfigItem[]

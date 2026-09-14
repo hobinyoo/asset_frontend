@@ -70,22 +70,19 @@ export default function InvestmentAccountCard({
       style={style}
       className="rounded-xl border border-border bg-card p-4 shadow-sm"
     >
-      <div className="mb-2 flex items-start justify-between">
+      <div className="mb-2 flex items-start justify-between gap-2">
         <button
           type="button"
           onClick={() => setHoldingsOpen(true)}
-          className="min-w-0 text-left"
+          className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left"
         >
           <p className="truncate text-sm font-medium text-foreground">{account.assetCategory}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span
-              className="rounded-full px-1.5 py-0.5 font-medium"
-              style={{ backgroundColor: `${ownerColor}22`, color: ownerColor }}
-            >
-              {owner}
-            </span>
-            종목 {holdings.length}개 · 눌러서 상세
-          </p>
+          <span
+            className="shrink-0 rounded-full px-1.5 py-0.5 text-xs font-medium"
+            style={{ backgroundColor: `${ownerColor}22`, color: ownerColor }}
+          >
+            {owner}
+          </span>
         </button>
         <button
           type="button"
@@ -99,14 +96,16 @@ export default function InvestmentAccountCard({
       </div>
 
       <button type="button" onClick={() => setHoldingsOpen(true)} className="block w-full text-left">
-        <p className="text-xl font-bold text-foreground">{formatAmount(totalAmount)}</p>
-        {holdings.length > 0 && (
-          <p className={`mt-0.5 text-sm font-medium ${plClass(profit)}`}>
-            {profit >= 0 ? '+' : ''}
-            {formatAmount(profit)} ({profit >= 0 ? '+' : ''}
-            {profitRate.toFixed(2)}%)
-          </p>
-        )}
+        <div className="flex items-baseline gap-2">
+          <p className="text-xl font-bold text-foreground">{formatAmount(totalAmount)}</p>
+          {holdings.length > 0 && (
+            <p className={`text-sm font-medium ${plClass(profit)}`}>
+              {profit >= 0 ? '+' : ''}
+              {formatAmount(profit)} ({profit >= 0 ? '+' : ''}
+              {profitRate.toFixed(2)}%)
+            </p>
+          )}
+        </div>
         <div className="mt-2 flex gap-4 text-xs text-muted-foreground">
           <span>예수금 {formatAmount(account.cashBalance)}</span>
           <span>주식 {formatAmount(holdingsAmount)}</span>
