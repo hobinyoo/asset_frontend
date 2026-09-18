@@ -36,6 +36,7 @@ const EMPTY_FORM: InvestmentCreateRequest = {
   quantity: undefined,
   purchaseAmount: undefined,
   marketType: 'DOMESTIC',
+  investmentTerm: 'LONG_TERM',
 }
 
 const InvestmentModal = ({
@@ -70,6 +71,8 @@ const InvestmentModal = ({
           quantity: investment.quantity ?? undefined,
           purchaseAmount: investment.purchaseAmount ?? undefined,
           marketType: investment.marketType,
+          investmentTerm: investment.investmentTerm ?? 'LONG_TERM',
+          buyMoreCount: investment.buyMoreCount,
         }
       : { ...EMPTY_FORM, assetId: presetAssetId },
   )
@@ -181,6 +184,56 @@ const InvestmentModal = ({
             isPending={addInvestmentCategory.isPending}
             placeholder="카테고리 선택"
           />
+
+          <FormField
+            label={
+              <>
+                종목 성격 <span className="text-destructive">*</span>
+              </>
+            }
+          >
+            <div className="flex overflow-hidden rounded-lg border border-gray-200 text-sm">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, investmentTerm: 'SHORT_TERM' })}
+                className={`flex-1 px-3 py-2 font-medium transition-colors ${
+                  form.investmentTerm === 'SHORT_TERM'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                단기 (추매 사다리)
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, investmentTerm: 'LONG_TERM' })}
+                className={`flex-1 px-3 py-2 font-medium transition-colors ${
+                  form.investmentTerm === 'LONG_TERM'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                중장기 (보유)
+              </button>
+            </div>
+          </FormField>
+
+          {isEdit && form.investmentTerm === 'SHORT_TERM' && (
+            <FormField label="추매 횟수 (사다리 단계, 수동 보정용)">
+              <FormInput
+                type="number"
+                min={0}
+                max={3}
+                value={form.buyMoreCount ?? 0}
+                onChange={(e) =>
+                  setForm({ ...form, buyMoreCount: e.target.value ? Number(e.target.value) : 0 })
+                }
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                추매할 때마다 직접 여기서 숫자를 올려주세요 (자동으로는 안 올라가요).
+              </p>
+            </FormField>
+          )}
 
           {!isEdit && (
             <>

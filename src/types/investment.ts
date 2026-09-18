@@ -2,6 +2,9 @@ import type { ChartPeriod } from '@/types/period'
 
 export type MarketType = 'DOMESTIC' | 'OVERSEAS'
 
+/** 종목 성격 — 단기(사다리 매매 전략 대상) / 중장기(보유 목적, 추매 사다리 미적용) */
+export type InvestmentTerm = 'SHORT_TERM' | 'LONG_TERM'
+
 export interface Investment {
   id: number
   assetId: number | null
@@ -20,6 +23,8 @@ export interface Investment {
   createdAt: string
   updatedAt: string
   marketType: MarketType
+  investmentTerm: InvestmentTerm | null
+  buyMoreCount: number
 }
 
 export interface InvestmentCreateRequest {
@@ -32,6 +37,8 @@ export interface InvestmentCreateRequest {
   quantity?: number
   purchaseAmount?: number
   marketType: MarketType
+  investmentTerm?: InvestmentTerm
+  buyMoreCount?: number
 }
 
 export type InvestmentUpdateRequest = InvestmentCreateRequest

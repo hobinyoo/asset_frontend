@@ -87,7 +87,6 @@ export default function StockSearchField({ value, onChange, onSelect }: Props) {
             setOpen(true)
             setActiveIndex(-1)
           }}
-          onFocus={() => setOpen(true)}
           onBlur={() => {
             blurTimer.current = setTimeout(() => setOpen(false), 150)
           }}

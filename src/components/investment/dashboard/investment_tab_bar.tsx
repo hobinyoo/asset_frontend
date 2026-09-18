@@ -7,6 +7,7 @@ const TABS = [
   { label: '전체 요약', href: '/investments' },
   { label: '계좌 정보', href: '/investments/accounts' },
   { label: '투자상세', href: '/investments/detail' },
+  { label: '실시간 현황', href: '/investments/realtime' },
 ]
 
 export default function InvestmentTabBar() {
